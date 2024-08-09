@@ -3,11 +3,16 @@ using Bindito.Core;
 using System;
 using System.Collections.Generic;
 using Timberborn.BuildingsBlocking;
+using Timberborn.ConstructibleSystem;
 using Timberborn.GameDistricts;
 using Timberborn.Goods;
 using Timberborn.GoodsUI;
+using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
+using Timberborn.SelectionSystem;
+using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
+using Timberborn.TimeSystem;
 using Timberborn.Workshops;
 using Timberborn.WorkSystem;
 using UnityEngine;
@@ -16,10 +21,18 @@ namespace EmploymentAutomation
 {
     public class EmploymentManagerComponent : TickableComponent, IPersistentEntity
     {
+        private EventBus eventBus;
         private GoodDescriber goodDescriber;
         private DistrictResourceCounterService districtResourceCounterService;
 
+        private Workplace workplace;
+        private Manufactory manufactory;
+        private DistrictBuilding districtBuilding;
+        private PausableBuilding pausableBuilding;
+        private MechanicalNode mechanicalNode;
+
         private static readonly ComponentKey EmploymentManagerComponentKey = new ComponentKey("EmploymentManagerComponent");
+        private static readonly PropertyKey<bool> PowerActiveKey = new PropertyKey<bool>("PowerActive");
         private static readonly PropertyKey<bool> OutStockActiveKey = new PropertyKey<bool>("OutStockActive");
         private static readonly PropertyKey<float> OutStockHighKey = new PropertyKey<float>("OutStockHigh");
         private static readonly PropertyKey<float> OutStockLowKey = new PropertyKey<float>("OutStockLow");
@@ -28,41 +41,71 @@ namespace EmploymentAutomation
         private static readonly PropertyKey<float> InStockLowKey = new PropertyKey<float>("InStockLow");
 
         public bool availible = false;
+        public bool powerAvailible = false;
         public bool outStockAvailible = false;
         public bool inStockAvailible = false;
+
+        public bool powerActive = false;
         public bool outStockActive = false;
         public float outStockHigh = 0.95f;
         public float outStockLow = 0.85f;
         public bool inStockActive = false;
         public float inStockHigh = 0.15f;
         public float inStockLow = 0.05f;
-        public string inStockText = "";
-        public string outStockText = "";
+        public string inStockText = "Ingredient";
+        public string outStockText = "Product";
 
         [Inject]
-        public void InjectDependencies(DistrictResourceCounterService districtResourceCounterService, GoodDescriber goodDescriber)
+        public void InjectDependencies(DistrictResourceCounterService districtResourceCounterService, GoodDescriber goodDescriber, EventBus eventBus)
         {
+            eventBus.Register(this);
+            this.eventBus = eventBus;
             this.goodDescriber = goodDescriber;
             this.districtResourceCounterService = districtResourceCounterService;
+            UpdateComponents();
+        }
+        // update components here and there
+        [OnEvent] 
+        public void OnSelectableObjectSelected(SelectableObjectSelectedEvent selectableObjectSelectedEvent)
+        {
+            UpdateComponents();
+        }
+        [OnEvent]
+        public void OnDaytimeStartEvent(DaytimeStartEvent daytimeStartEvent)
+        {
+            UpdateComponents();
+        }
+
+        public void UpdateComponents()
+        {
+            workplace = base.GetComponentFast<Workplace>();
+            manufactory = base.GetComponentFast<Manufactory>();
+            districtBuilding = base.GetComponentFast<DistrictBuilding>();
+            pausableBuilding = base.GetComponentFast<PausableBuilding>();
+            mechanicalNode = base.GetComponentFast<MechanicalNode>();
         }
 
         public override void Tick()
         {
-            Workplace workplace = base.GetComponentFast<Workplace>();
-            Manufactory manufactory = base.GetComponentFast<Manufactory>();
-            DistrictBuilding districtBuilding = base.GetComponentFast<DistrictBuilding>();
-            PausableBuilding pausableBuilding = base.GetComponentFast<PausableBuilding>();
             availible = (pausableBuilding != null) && (districtBuilding != null) && (districtBuilding.InstantDistrict != null) && (workplace != null) && (manufactory != null) && manufactory.HasCurrentRecipe && (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
-            if (availible)
+            if(availible)
+            {
+                powerAvailible = mechanicalNode != null && mechanicalNode.IsConsumer;
+                outStockAvailible = manufactory.CurrentRecipe.Products.Count != 0;
+                inStockAvailible = manufactory.CurrentRecipe.Ingredients.Count != 0;
+            }
+            bool checkOutStock = outStockAvailible && outStockActive;
+            bool checkInStock = inStockAvailible && inStockActive;
+            bool checkPower = powerActive && powerAvailible;
+
+            if (availible && (checkOutStock || checkInStock || checkPower))
             {
                 // obtain fillrate of output
                 IReadOnlyList<GoodAmount> products = manufactory.CurrentRecipe.Products;
                 float productFillrate = 1.0f;
-                outStockAvailible = products.Count != 0;
-                bool checkOutStock = outStockAvailible && outStockActive;
                 if (checkOutStock) 
                 {
-                    outStockText = products.Count == 0 ? "" : goodDescriber.Describe(products[0].GoodId);
+                    outStockText = products.Count == 0 ? outStockText : goodDescriber.Describe(products[0].GoodId);
                     foreach (GoodAmount product in products)
                     {
                         float fillLevel = districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.GoodId);
@@ -75,12 +118,10 @@ namespace EmploymentAutomation
                 }
                 // obtain fillrate of input
                 IReadOnlyList<GoodAmount> ingredients = manufactory.CurrentRecipe.Ingredients;
-                inStockAvailible = ingredients.Count != 0;
                 float ingredientFillrate = 1.0f;
-                bool checkInStock = inStockAvailible && inStockActive;
                 if (checkInStock)
                 {
-                    inStockText = products.Count == 0 ? "" : goodDescriber.Describe(ingredients[0].GoodId);
+                    inStockText = products.Count == 0 ? inStockText : goodDescriber.Describe(ingredients[0].GoodId);
                     foreach (GoodAmount incredient in ingredients)
                     {
                         float fillLevel = districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, incredient.GoodId);
@@ -91,16 +132,29 @@ namespace EmploymentAutomation
                         }
                     }
                 }
-                // employment triggers
-                Tuple<int, int> bounds = GetEmploymentBounds(checkOutStock, checkInStock, productFillrate, ingredientFillrate, workplace);
-                int currentDesiredWorkers = GetCurrentDesiredWorkers(pausableBuilding, workplace);
-                if (currentDesiredWorkers < bounds.Item1) // understaffed?
+                // employment trigger bounds
+                Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
+                if (checkPower)
                 {
-                    IncreaseDesiredWorkers(pausableBuilding, workplace);
+                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower());
                 }
-                else if (currentDesiredWorkers > bounds.Item2) // overstaffed?
+                if (checkOutStock)
                 {
-                    DecreaseDesiredWorkers(pausableBuilding, workplace);
+                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsProduct(productFillrate));
+                }
+                if (checkInStock)
+                {
+                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
+                }
+                // perform employment
+                int currentDesiredWorkers = this.GetCurrentDesiredWorkers(this.pausableBuilding, this.workplace);
+                if (currentDesiredWorkers < bounds.x)
+                {
+                    this.IncreaseDesiredWorkers(this.pausableBuilding, this.workplace);
+                }
+                else if (currentDesiredWorkers > bounds.y)
+                {
+                    this.DecreaseDesiredWorkers(this.pausableBuilding, this.workplace);
                 }
             }
         }
@@ -134,74 +188,63 @@ namespace EmploymentAutomation
                 pausableBuilding.Pause();
             } else
             {
-                workplace.IncreaseDesiredWorkers();
+                workplace.DecreaseDesiredWorkers();
             }
         }
 
-        public Tuple<int,int> GetEmploymentBounds(bool checkOutStock, bool checkInStock, float productFillrate, float incredientFillrate, Workplace workplace)
+        public Vector2Int GetEmploymentBoundsPower()
         {
-            // determine bounds for output
-            int outputLow = workplace.MaxWorkers;
-            int outputHigh = workplace.MaxWorkers;
-            if (checkOutStock)
+            Vector2Int bounds = new Vector2Int(0, 0);
+            if (!powerAvailible || (powerAvailible && powerActive && mechanicalNode.Powered)) // do we have no power requirements or are powered?
             {
-                outputLow = workplace.MaxWorkers;
-                for (int i = 0; i < workplace.MaxWorkers; i++)
-                {
-                    float lowThreshold = GetValueBetween(outStockLow, outStockHigh, workplace.MaxWorkers * 2, i);
-                    float highThreshold = GetValueBetween(outStockLow, outStockHigh, workplace.MaxWorkers * 2, workplace.MaxWorkers * 2 - i - 1);
-                    if (productFillrate > lowThreshold)
-                    {
-                        outputLow--;
-                    }
-                    if (productFillrate > highThreshold)
-                    {
-                        outputHigh--;
-                    }
-                }
+                bounds.x = workplace.MaxWorkers;
+                bounds.y = workplace.MaxWorkers;
             }
-            // determine bounds for input, basicly above in reverse
-            int inputLow = workplace.MaxWorkers;
-            int inputHigh = workplace.MaxWorkers;
-            if (checkInStock)
-            {
-                inputLow = workplace.MaxWorkers;
-                for (int i = 0; i < workplace.MaxWorkers; i++)
-                {
-                    float lowThreshold = GetValueBetween(inStockLow, inStockHigh, workplace.MaxWorkers * 2, i);
-                    float highThreshold = GetValueBetween(inStockLow, inStockHigh, workplace.MaxWorkers * 2, workplace.MaxWorkers * 2 - i - 1);
-                    if (incredientFillrate < lowThreshold)
-                    {
-                        inputHigh--;
-                    }
-                    if (incredientFillrate < highThreshold)
-                    {
-                        inputLow--;
-                    }
-                }
-            }
-            // clamp to workers allowed from input stock levels
-            return new Tuple<int, int>(
-                Mathf.Min(outputLow,  inputLow), 
-                Mathf.Min(outputHigh, inputHigh));
+            return bounds;
         }
 
-        private float GetValueBetween(float min, float max, int num_values, int index)
+        public Vector2Int GetEmploymentBoundsProduct(float fillrate)
         {
-            float diff = max - min;
-            float offset = index * diff / (num_values-1);
-            return min + offset;
+            Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, 0);
+            float offset = (outStockHigh - outStockLow) / (workplace.MaxWorkers*2-1);
+            float low = outStockLow;
+            float high = outStockHigh;
+            for (int i = 0; i < workplace.MaxWorkers; i++)
+            {
+                bounds.x -= Convert.ToInt32(fillrate > low); // fillrate above low threshold? remove one minimum worker
+                bounds.y += Convert.ToInt32(fillrate < high); // fillrate below high threshold? add one maximum worker
+                low += offset;
+                high -= offset;
+            }
+            return bounds;
+        }
+
+        public Vector2Int GetEmploymentBoundsIngredient(float fillrate)
+        {
+            Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, 0);
+            float offset = (inStockHigh - inStockLow) / (workplace.MaxWorkers * 2 - 1);
+            float low = inStockLow;
+            float high = inStockHigh;
+            for (int i = 0; i < workplace.MaxWorkers; i++)
+            {
+                bounds.y += Convert.ToInt32(fillrate > low); // fillrate above low threshold? add one maximum worker
+                bounds.x -= Convert.ToInt32(fillrate < high); // fillrate below high threshold? remove one minimum worker
+                low += offset;
+                high -= offset;
+            }
+            return bounds;
         }
 
         public void Save(IEntitySaver entitySaver)
         {
             IObjectSaver component = entitySaver.GetComponent(EmploymentManagerComponentKey);
+            component.Set(PowerActiveKey, powerActive);
             component.Set(OutStockActiveKey, outStockActive);
             component.Set(OutStockLowKey, outStockLow);
             component.Set(OutStockHighKey, outStockHigh);
             component.Set(InStockActiveKey, inStockActive);
             component.Set(InStockLowKey, inStockLow);
-            component.Set(InStockHighKey, inStockHigh);
+            component.Set(InStockHighKey, inStockHigh);   
         }
 
         public void Load(IEntityLoader entityLoader)
@@ -209,6 +252,7 @@ namespace EmploymentAutomation
             try
             {
                 IObjectLoader component = entityLoader.GetComponent(EmploymentManagerComponentKey);
+                powerActive = component.Get(PowerActiveKey);
                 outStockActive = component.Get(OutStockActiveKey);
                 outStockLow = component.Get(OutStockLowKey);
                 outStockHigh = component.Get(OutStockHighKey);

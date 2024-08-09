@@ -24,6 +24,10 @@ namespace EmploymentAutomation.UIPresets
 		{
 			visualElementBuilder = UIBuilder.Create<PanelFragment>();
 			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextToggle>()
+				.SetName("power_toggle")
+				.SetText("Pause without power")
+				.Build());
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextToggle>()
 				.SetName("out_stock_toggle")
 				.SetText("Automate products")
 				.Build());

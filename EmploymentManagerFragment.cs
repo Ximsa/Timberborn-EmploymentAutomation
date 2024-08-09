@@ -13,6 +13,7 @@ namespace EmploymentAutomation
         private VisualElement root;
         private Toggle outStockToggle;
         private Toggle inStockToggle;
+        private Toggle powerToggle;
         private MinMaxSlider outStock;
         private MinMaxSlider inStock;
         private EmploymentManagerComponent manager;
@@ -30,6 +31,7 @@ namespace EmploymentAutomation
         public VisualElement InitializeFragment()
         {
             root = builder.BuildAndInitialize<EmploymentManagerPanel>();
+            powerToggle = root.Q<Toggle>("power_toggle");
             outStockToggle = root.Q<Toggle>("out_stock_toggle");
             inStockToggle = root.Q<Toggle>("in_stock_toggle");
             outStock = root.Q<MinMaxSlider>("out_stock");
@@ -44,6 +46,7 @@ namespace EmploymentAutomation
             bool availible = manager != null && manager.availible;
             if (availible)
             {
+                powerToggle.value = manager.powerActive;
                 outStockToggle.value = manager.outStockActive;
                 outStock.value = new Vector2(manager.outStockLow, manager.outStockHigh);
                 inStockToggle.value = manager.inStockActive;
@@ -55,21 +58,23 @@ namespace EmploymentAutomation
         public void UpdateFragment()
         {
             bool availible = manager != null && manager.availible;
-            SetVisibility(outStockToggle, availible && manager.outStockAvailible);
-            SetVisibility(inStockToggle, availible && manager.inStockAvailible);
-            SetVisibility(outStock, availible && outStockToggle.value);
-            SetVisibility(inStock, availible && inStockToggle.value);
             if (availible)
             {
+                inStock.label = manager.inStockText;
+                outStock.label = manager.outStockText;
+                manager.powerActive = powerToggle.value;
                 manager.outStockActive = outStockToggle.value;
                 manager.inStockActive = inStockToggle.value;
                 manager.outStockLow = outStock.value.x;
                 manager.outStockHigh = outStock.value.y;
                 manager.inStockLow = inStock.value.x;
                 manager.inStockHigh = inStock.value.y;
-                inStock.label = manager.inStockText;
-                outStock.label = manager.outStockText;
             }
+            SetVisibility(powerToggle, availible && manager.powerAvailible);
+            SetVisibility(outStockToggle, availible && manager.outStockAvailible);
+            SetVisibility(inStockToggle, availible && manager.inStockAvailible);
+            SetVisibility(outStock, availible && outStockToggle.value);
+            SetVisibility(inStock, availible && inStockToggle.value);
         }
 
         private static void SetVisibility(VisualElement element, bool visible)
