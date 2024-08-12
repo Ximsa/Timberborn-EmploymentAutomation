@@ -6,13 +6,16 @@
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\Timberborn\Mods\Harmony\0Harmony.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\harmony_4149561\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Bindito.Core">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Bindito.Core.dll</HintPath>
     </Reference>
     <Reference Include="Bindito.Unity">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Bindito.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="Tester">
+      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\Tester.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi">
       <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.dll</HintPath>
@@ -88,6 +91,12 @@
     </Reference>
     <Reference Include="Timberborn.Persistence">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.Persistence.dll</HintPath>
+    </Reference>
+    <Reference Include="Timberborn.PowerGenerating">
+      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.PowerGenerating.dll</HintPath>
+    </Reference>
+    <Reference Include="Timberborn.PowerStorage">
+      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.PowerStorage.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.ResourceCountingSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.ResourceCountingSystem.dll</HintPath>

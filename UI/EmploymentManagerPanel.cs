@@ -23,29 +23,29 @@ namespace EmploymentAutomation.UIPresets
 		protected override NineSliceVisualElement InitializeRoot()
 		{
 			visualElementBuilder = UIBuilder.Create<PanelFragment>();
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextToggle>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
 				.SetName("power_toggle")
-				.SetText("Pause without power")
+				.SetLocKey("Ximsa.EmploymentAutomation.PowerToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextToggle>()
-				.SetName("out_stock_toggle")
-				.SetText("Automate products")
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
+				.SetName("in_stock_toggle")
+				.SetLocKey("Ximsa.EmploymentAutomation.IngredientToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
 				.Small()
-				.SetName("out_stock")
-				.SetLocKey("Ximsa.EmploymentAutomation.None")
+				.SetName("in_stock")
+				.SetLabel("Ingredient")
 				.SetLowLimit(0)
 				.SetHighLimit(1)
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextToggle>()
-				.SetName("in_stock_toggle")
-				.SetText("Automate ingredients")
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
+				.SetName("out_stock_toggle")
+				.SetLocKey("Ximsa.EmploymentAutomation.ProductToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
 				.Small()
-				.SetName("in_stock")
-				.SetLocKey("Ximsa.EmploymentAutomation.None")
+				.SetName("out_stock")
+				.SetLabel("Product")
 				.SetLowLimit(0)
 				.SetHighLimit(1)
 				.Build());

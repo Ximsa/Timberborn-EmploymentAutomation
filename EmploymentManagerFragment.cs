@@ -25,7 +25,7 @@ namespace EmploymentAutomation
 
         public void ClearFragment()
         {
-            root.visible = false;
+            SetVisibility(root, manager != null && manager.availible);
         }
 
         public VisualElement InitializeFragment()

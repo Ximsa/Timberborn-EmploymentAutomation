@@ -65,6 +65,7 @@ namespace EmploymentAutomation
             UpdateComponents();
         }
         // update components here and there
+        /*
         [OnEvent] 
         public void OnSelectableObjectSelected(SelectableObjectSelectedEvent selectableObjectSelectedEvent)
         {
@@ -72,6 +73,10 @@ namespace EmploymentAutomation
         }
         [OnEvent]
         public void OnDaytimeStartEvent(DaytimeStartEvent daytimeStartEvent)
+        {
+            UpdateComponents();
+        }*/
+        public void Awake()
         {
             UpdateComponents();
         }
@@ -147,19 +152,19 @@ namespace EmploymentAutomation
                     bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
                 }
                 // perform employment
-                int currentDesiredWorkers = this.GetCurrentDesiredWorkers(this.pausableBuilding, this.workplace);
+                int currentDesiredWorkers = this.GetCurrentDesiredWorkers();
                 if (currentDesiredWorkers < bounds.x)
                 {
-                    this.IncreaseDesiredWorkers(this.pausableBuilding, this.workplace);
+                    this.IncreaseDesiredWorkers();
                 }
                 else if (currentDesiredWorkers > bounds.y)
                 {
-                    this.DecreaseDesiredWorkers(this.pausableBuilding, this.workplace);
+                    this.DecreaseDesiredWorkers();
                 }
             }
         }
 
-        public int GetCurrentDesiredWorkers(PausableBuilding pausableBuilding, Workplace workplace)
+        public int GetCurrentDesiredWorkers()
         {
             if (pausableBuilding.Paused)
             {
@@ -171,22 +176,24 @@ namespace EmploymentAutomation
             }
         }
 
-        public void IncreaseDesiredWorkers(PausableBuilding pausableBuilding, Workplace workplace)
+        public void IncreaseDesiredWorkers()
         {
             if (pausableBuilding.Paused)
             {
                 pausableBuilding.Resume();
-            } else
+            }
+            else
             {
                 workplace.IncreaseDesiredWorkers();
             }
         }
-        public void DecreaseDesiredWorkers(PausableBuilding pausableBuilding, Workplace workplace)
+        public void DecreaseDesiredWorkers()
         {
-            if(workplace.DesiredWorkers <= 1)
+            if (workplace.DesiredWorkers <= 1)
             {
                 pausableBuilding.Pause();
-            } else
+            }
+            else
             {
                 workplace.DecreaseDesiredWorkers();
             }
