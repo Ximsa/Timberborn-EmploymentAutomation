@@ -49,8 +49,10 @@ namespace EmploymentAutomation
                 powerToggle.value = manager.powerActive;
                 outStockToggle.value = manager.outStockActive;
                 outStock.value = new Vector2(manager.outStockLow, manager.outStockHigh);
+                outStock.label = manager.outStockLow.ToString("0.00") + " - " + manager.outStockHigh.ToString("0.00");
                 inStockToggle.value = manager.inStockActive;
                 inStock.value = new Vector2(manager.inStockLow, manager.inStockHigh);
+                inStock.label = manager.inStockLow.ToString("0.00") + " - " + manager.inStockHigh.ToString("0.00");
             }
             SetVisibility(root, availible);
         }
@@ -60,8 +62,8 @@ namespace EmploymentAutomation
             bool availible = manager != null && manager.availible;
             if (availible)
             {
-                inStock.label = manager.inStockText;
-                outStock.label = manager.outStockText;
+                inStock.label = manager.inStockLow.ToString("0.00") + " - " + manager.inStockHigh.ToString("0.00");
+                outStock.label = manager.outStockLow.ToString("0.00") + " - " + manager.outStockHigh.ToString("0.00"); 
                 manager.powerActive = powerToggle.value;
                 manager.outStockActive = outStockToggle.value;
                 manager.inStockActive = inStockToggle.value;

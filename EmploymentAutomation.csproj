@@ -14,35 +14,35 @@
     <Reference Include="Bindito.Unity">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Bindito.Unity.dll</HintPath>
     </Reference>
-    <Reference Include="Tester">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\Tester.dll</HintPath>
+    <Reference Include="BuildingSpecificationSystem">
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\BuildingSpecificationSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.BottomBarSystem">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.BottomBarSystem.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.BottomBarSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.EntityLinkerSystem">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.EntityLinkerSystem.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.EntityLinkerSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.ObjectSelectionSystem">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.ObjectSelectionSystem.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.ObjectSelectionSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.SpecificationPatcher">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.SpecificationPatcher.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.SpecificationPatcher.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.SpecificationSystem">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.SpecificationSystem.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.SpecificationSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.Tools">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.Tools.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.Tools.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.UIBuilderSystem">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.UIBuilderSystem.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.UIBuilderSystem.dll</HintPath>
     </Reference>
     <Reference Include="TimberApi.UIPresets">
-      <HintPath>..\..\Timberborn\Mods\TimberAPI\core\TimberApi.UIPresets.dll</HintPath>
+      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.UIPresets.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.BaseComponentSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.BaseComponentSystem.dll</HintPath>

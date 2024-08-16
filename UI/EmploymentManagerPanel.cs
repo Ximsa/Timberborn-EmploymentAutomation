@@ -51,7 +51,7 @@ namespace EmploymentAutomation.UIPresets
 				.Build());
 			visualElementBuilder.SetFlexDirection(FlexDirection.Column);
 			visualElementBuilder.SetWidth(new Length(100f, LengthUnit.Percent));
-			visualElementBuilder.SetJustifyContent(Justify.Center);
+			visualElementBuilder.SetJustifyContent(Justify.SpaceBetween);
 			return visualElementBuilder.BuildAndInitialize();
 		}
 	}
