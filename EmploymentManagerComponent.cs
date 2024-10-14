@@ -3,16 +3,12 @@ using Bindito.Core;
 using System;
 using System.Collections.Generic;
 using Timberborn.BuildingsBlocking;
-using Timberborn.ConstructibleSystem;
 using Timberborn.GameDistricts;
 using Timberborn.Goods;
-using Timberborn.GoodsUI;
 using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
-using Timberborn.SelectionSystem;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
-using Timberborn.TimeSystem;
 using Timberborn.Workshops;
 using Timberborn.WorkSystem;
 using UnityEngine;
@@ -21,8 +17,6 @@ namespace EmploymentAutomation
 {
     public class EmploymentManagerComponent : TickableComponent, IPersistentEntity
     {
-        private EventBus eventBus;
-        private GoodDescriber goodDescriber;
         private DistrictResourceCounterService districtResourceCounterService;
 
         private Workplace workplace;
@@ -30,9 +24,12 @@ namespace EmploymentAutomation
         private DistrictBuilding districtBuilding;
         private PausableBuilding pausableBuilding;
         private MechanicalNode mechanicalNode;
+        private MechanicalNodeSpecification mechanicalNodeSpecification;
 
         private static readonly ComponentKey EmploymentManagerComponentKey = new ComponentKey("EmploymentManagerComponent");
         private static readonly PropertyKey<bool> PowerActiveKey = new PropertyKey<bool>("PowerActive");
+        private static readonly PropertyKey<float> PowerHighKey = new PropertyKey<float>("PowerHigh");
+        private static readonly PropertyKey<float> PowerLowKey = new PropertyKey<float>("PowerLow");
         private static readonly PropertyKey<bool> OutStockActiveKey = new PropertyKey<bool>("OutStockActive");
         private static readonly PropertyKey<float> OutStockHighKey = new PropertyKey<float>("OutStockHigh");
         private static readonly PropertyKey<float> OutStockLowKey = new PropertyKey<float>("OutStockLow");
@@ -46,36 +43,23 @@ namespace EmploymentAutomation
         public bool inStockAvailible = false;
 
         public bool powerActive = false;
+        public float powerHigh = 0.75f;
+        public float powerLow = 0.50f;
         public bool outStockActive = false;
         public float outStockHigh = 0.95f;
         public float outStockLow = 0.85f;
         public bool inStockActive = false;
         public float inStockHigh = 0.15f;
         public float inStockLow = 0.05f;
-        public string inStockText = "Ingredient";
-        public string outStockText = "Product";
 
         [Inject]
-        public void InjectDependencies(DistrictResourceCounterService districtResourceCounterService, GoodDescriber goodDescriber, EventBus eventBus)
+        public void InjectDependencies(DistrictResourceCounterService districtResourceCounterService, EventBus eventBus)
         {
             eventBus.Register(this);
-            this.eventBus = eventBus;
-            this.goodDescriber = goodDescriber;
             this.districtResourceCounterService = districtResourceCounterService;
             UpdateComponents();
         }
-        // update components here and there
-        /*
-        [OnEvent] 
-        public void OnSelectableObjectSelected(SelectableObjectSelectedEvent selectableObjectSelectedEvent)
-        {
-            UpdateComponents();
-        }
-        [OnEvent]
-        public void OnDaytimeStartEvent(DaytimeStartEvent daytimeStartEvent)
-        {
-            UpdateComponents();
-        }*/
+
         public void Awake()
         {
             UpdateComponents();
@@ -87,7 +71,11 @@ namespace EmploymentAutomation
             manufactory = base.GetComponentFast<Manufactory>();
             districtBuilding = base.GetComponentFast<DistrictBuilding>();
             pausableBuilding = base.GetComponentFast<PausableBuilding>();
-            mechanicalNode = base.GetComponentFast<MechanicalNode>();
+            if (Type.GetType("IgorZ.SmartPower.Core.Configurator") == null) // smartpower not detected, provide own power management
+            {
+                mechanicalNode = base.GetComponentFast<MechanicalNode>();
+                mechanicalNodeSpecification = base.GetComponentFast<MechanicalNodeSpecification>();
+            }
         }
 
         public override void Tick()
@@ -95,7 +83,7 @@ namespace EmploymentAutomation
             availible = (pausableBuilding != null) && (districtBuilding != null) && (districtBuilding.InstantDistrict != null) && (workplace != null) && (manufactory != null) && manufactory.HasCurrentRecipe && (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
             if(availible)
             {
-                powerAvailible = mechanicalNode != null && mechanicalNode.IsConsumer;
+                powerAvailible = mechanicalNodeSpecification != null && mechanicalNode != null && mechanicalNode.Graph != null && mechanicalNode.IsConsumer;
                 outStockAvailible = manufactory.CurrentRecipe.Products.Count != 0;
                 inStockAvailible = manufactory.CurrentRecipe.Ingredients.Count != 0;
             }
@@ -105,20 +93,25 @@ namespace EmploymentAutomation
 
             if (availible && (checkOutStock || checkInStock || checkPower))
             {
+                // obtain power availability
+                float powerMeter = 1.0f;
+                if (checkPower)
+                {
+                    
+                    MechanicalGraphPower currentPower = mechanicalNode.Graph.CurrentPower;
+                    powerMeter = Mathf.Min(
+                        (currentPower.PowerSupply + currentPower.BatteryPower)/
+                        (currentPower.PowerDemand + (GetCurrentDesiredWorkers() == 0 ? mechanicalNodeSpecification.PowerInput : 0f)),
+                        1f);
+                }
                 // obtain fillrate of output
                 IReadOnlyList<GoodAmount> products = manufactory.CurrentRecipe.Products;
                 float productFillrate = 1.0f;
                 if (checkOutStock) 
                 {
-                    outStockText = products.Count == 0 ? outStockText : goodDescriber.Describe(products[0].GoodId);
                     foreach (GoodAmount product in products)
                     {
-                        float fillLevel = districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.GoodId);
-                        if (fillLevel < productFillrate)
-                        {
-                            outStockText = goodDescriber.Describe(product.GoodId);
-                            productFillrate = fillLevel;
-                        }
+                        productFillrate = Mathf.Min(productFillrate, districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.GoodId));
                     } 
                 }
                 // obtain fillrate of input
@@ -126,22 +119,16 @@ namespace EmploymentAutomation
                 float ingredientFillrate = 1.0f;
                 if (checkInStock)
                 {
-                    inStockText = products.Count == 0 ? inStockText : goodDescriber.Describe(ingredients[0].GoodId);
                     foreach (GoodAmount incredient in ingredients)
                     {
-                        float fillLevel = districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, incredient.GoodId);
-                        if (fillLevel < ingredientFillrate)
-                        {
-                            inStockText = goodDescriber.Describe(incredient.GoodId);
-                            ingredientFillrate = fillLevel;
-                        }
+                        ingredientFillrate = Mathf.Min(ingredientFillrate, districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, incredient.GoodId));
                     }
                 }
                 // employment trigger bounds
                 Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
                 if (checkPower)
                 {
-                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower());
+                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower(powerMeter));
                 }
                 if (checkOutStock)
                 {
@@ -199,15 +186,11 @@ namespace EmploymentAutomation
             }
         }
 
-        public Vector2Int GetEmploymentBoundsPower()
+        public Vector2Int GetEmploymentBoundsPower(float powerMeter)
         {
-            Vector2Int bounds = new Vector2Int(0, 0);
-            if (!powerAvailible || (powerAvailible && powerActive && mechanicalNode.Powered)) // do we have no power requirements or are powered?
-            {
-                bounds.x = workplace.MaxWorkers;
-                bounds.y = workplace.MaxWorkers;
-            }
-            return bounds;
+            return new Vector2Int(
+                powerMeter < powerHigh ? 0 : workplace.MaxWorkers, // min
+                powerMeter < powerLow ? 0 : workplace.MaxWorkers); // max
         }
 
         public Vector2Int GetEmploymentBoundsProduct(float fillrate)
@@ -246,6 +229,8 @@ namespace EmploymentAutomation
         {
             IObjectSaver component = entitySaver.GetComponent(EmploymentManagerComponentKey);
             component.Set(PowerActiveKey, powerActive);
+            component.Set(PowerLowKey, powerLow);
+            component.Set(PowerHighKey, powerHigh);
             component.Set(OutStockActiveKey, outStockActive);
             component.Set(OutStockLowKey, outStockLow);
             component.Set(OutStockHighKey, outStockHigh);
@@ -266,6 +251,8 @@ namespace EmploymentAutomation
                 inStockActive = component.Get(InStockActiveKey);
                 inStockLow = component.Get(InStockLowKey);
                 inStockHigh = component.Get(InStockHighKey);
+                powerLow = component.Get(PowerLowKey);
+                powerHigh = component.Get(PowerHighKey);
             } catch(Exception e)
             {
                 Console.WriteLine(e.Message);

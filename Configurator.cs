@@ -2,9 +2,6 @@
 using EmploymentAutomation.UIPresets;
 using System;
 using Timberborn.EntityPanelSystem;
-using Timberborn.MechanicalSystem;
-using Timberborn.PowerGenerating;
-using Timberborn.PowerStorage;
 using Timberborn.TemplateSystem;
 using Timberborn.Workshops;
 

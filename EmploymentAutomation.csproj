@@ -26,9 +26,6 @@
     <Reference Include="TimberApi.EntityLinkerSystem">
       <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.EntityLinkerSystem.dll</HintPath>
     </Reference>
-    <Reference Include="TimberApi.ObjectSelectionSystem">
-      <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.ObjectSelectionSystem.dll</HintPath>
-    </Reference>
     <Reference Include="TimberApi.SpecificationPatcher">
       <HintPath>..\..\Timberborn\Mods\timberapi_2463537\core\TimberApi.SpecificationPatcher.dll</HintPath>
     </Reference>
@@ -47,26 +44,17 @@
     <Reference Include="Timberborn.BaseComponentSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.BaseComponentSystem.dll</HintPath>
     </Reference>
-    <Reference Include="Timberborn.Buildings">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.Buildings.dll</HintPath>
-    </Reference>
     <Reference Include="Timberborn.BuildingsBlocking">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.BuildingsBlocking.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.Common">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Timberborn.ConstructibleSystem">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.ConstructibleSystem.dll</HintPath>
-    </Reference>
     <Reference Include="Timberborn.CoreUI">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Publicized\Timberborn.CoreUI.dll</HintPath>
+      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.CoreUI.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.EntityPanelSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.EntityPanelSystem.dll</HintPath>
-    </Reference>
-    <Reference Include="Timberborn.EntitySystem">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.EntitySystem.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.GameDistricts">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.GameDistricts.dll</HintPath>
@@ -79,9 +67,6 @@
     </Reference>
     <Reference Include="Timberborn.InventorySystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.InventorySystem.dll</HintPath>
-    </Reference>
-    <Reference Include="Timberborn.Localization">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.Localization.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.MechanicalSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.MechanicalSystem.dll</HintPath>
@@ -97,9 +82,6 @@
     </Reference>
     <Reference Include="Timberborn.PowerStorage">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.PowerStorage.dll</HintPath>
-    </Reference>
-    <Reference Include="Timberborn.ResourceCountingSystem">
-      <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.ResourceCountingSystem.dll</HintPath>
     </Reference>
     <Reference Include="Timberborn.SelectionSystem">
       <HintPath>G:\GOG Games\Timberborn\Timberborn_Data\Managed\Timberborn.SelectionSystem.dll</HintPath>

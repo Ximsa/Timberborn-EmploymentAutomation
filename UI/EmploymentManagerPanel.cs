@@ -27,6 +27,13 @@ namespace EmploymentAutomation.UIPresets
 				.SetName("power_toggle")
 				.SetLocKey("Ximsa.EmploymentAutomation.PowerToggle")
 				.Build());
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
+				.Small()
+				.SetName("power")
+				.SetLabel("Power")
+				.SetLowLimit(0)
+				.SetHighLimit(1)
+				.Build());
 			visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
 				.SetName("in_stock_toggle")
 				.SetLocKey("Ximsa.EmploymentAutomation.IngredientToggle")
