@@ -37,7 +37,7 @@ namespace EmploymentAutomation
         private static readonly PropertyKey<float> InStockHighKey = new PropertyKey<float>("InStockHigh");
         private static readonly PropertyKey<float> InStockLowKey = new PropertyKey<float>("InStockLow");
 
-        public bool availible = false;
+        public bool available = false;
         public bool powerAvailible = false;
         public bool outStockAvailible = false;
         public bool inStockAvailible = false;
@@ -80,8 +80,8 @@ namespace EmploymentAutomation
 
         public override void Tick()
         {
-            availible = (pausableBuilding != null) && (districtBuilding != null) && (districtBuilding.InstantDistrict != null) && (workplace != null) && (manufactory != null) && manufactory.HasCurrentRecipe && (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
-            if(availible)
+            available = (pausableBuilding != null) && (districtBuilding != null) && (districtBuilding.InstantDistrict != null) && (workplace != null) && (manufactory != null) && manufactory.HasCurrentRecipe && (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
+            if(available)
             {
                 powerAvailible = mechanicalNodeSpecification != null && mechanicalNode != null && mechanicalNode.Graph != null && mechanicalNode.IsConsumer;
                 outStockAvailible = manufactory.CurrentRecipe.Products.Count != 0;
@@ -91,7 +91,7 @@ namespace EmploymentAutomation
             bool checkInStock = inStockAvailible && inStockActive;
             bool checkPower = powerActive && powerAvailible;
 
-            if (availible && (checkOutStock || checkInStock || checkPower))
+            if (available && (checkOutStock || checkInStock || checkPower))
             {
                 // obtain power availability
                 float powerMeter = 1.0f;

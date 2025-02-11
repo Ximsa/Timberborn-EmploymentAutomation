@@ -27,10 +27,10 @@ namespace EmploymentAutomation.UIPresets
 				.SetName("power_toggle")
 				.SetLocKey("Ximsa.EmploymentAutomation.PowerToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
 				.Small()
 				.SetName("power")
-				.SetLabel("Power")
+				.SetLocKey("Ximsa.EmploymentAutomation.None")
 				.SetLowLimit(0)
 				.SetHighLimit(1)
 				.Build());
@@ -38,10 +38,10 @@ namespace EmploymentAutomation.UIPresets
 				.SetName("in_stock_toggle")
 				.SetLocKey("Ximsa.EmploymentAutomation.IngredientToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
 				.Small()
 				.SetName("in_stock")
-				.SetLabel("Ingredient")
+				.SetLocKey("Ximsa.EmploymentAutomation.None")
 				.SetLowLimit(0)
 				.SetHighLimit(1)
 				.Build());
@@ -49,10 +49,10 @@ namespace EmploymentAutomation.UIPresets
 				.SetName("out_stock_toggle")
 				.SetLocKey("Ximsa.EmploymentAutomation.ProductToggle")
 				.Build());
-			visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
+			visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
 				.Small()
 				.SetName("out_stock")
-				.SetLabel("Product")
+				.SetLocKey("Ximsa.EmploymentAutomation.None")
 				.SetLowLimit(0)
 				.SetHighLimit(1)
 				.Build());

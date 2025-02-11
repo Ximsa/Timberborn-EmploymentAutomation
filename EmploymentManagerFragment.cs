@@ -26,7 +26,7 @@ namespace EmploymentAutomation
 
         public void ClearFragment()
         {
-            SetVisibility(root, manager != null && manager.availible);
+            SetVisibility(root, manager != null && manager.available);
         }
 
         public VisualElement InitializeFragment()
@@ -45,7 +45,7 @@ namespace EmploymentAutomation
         public void ShowFragment(BaseComponent entity)
         {
             manager = entity.GetComponentFast<EmploymentManagerComponent>();
-            bool availible = manager != null && manager.availible;
+            bool availible = manager != null && manager.available;
             if (availible)
             {
                 powerToggle.value = manager.powerActive;
@@ -62,8 +62,8 @@ namespace EmploymentAutomation
 
         public void UpdateFragment()
         {
-            bool availible = manager != null && manager.availible;
-            if (availible)
+            bool available = manager != null && manager.available;
+            if (available)
             {
                 inStock.label = manager.inStockLow.ToString("0.00") + " - " + manager.inStockHigh.ToString("0.00");
                 outStock.label = manager.outStockLow.ToString("0.00") + " - " + manager.outStockHigh.ToString("0.00");
@@ -78,12 +78,12 @@ namespace EmploymentAutomation
                 manager.inStockLow = inStock.value.x;
                 manager.inStockHigh = inStock.value.y;
             }
-            SetVisibility(powerToggle, availible && manager.powerAvailible);
-            SetVisibility(outStockToggle, availible && manager.outStockAvailible);
-            SetVisibility(inStockToggle, availible && manager.inStockAvailible);
-            SetVisibility(power, availible && powerToggle.value);
-            SetVisibility(outStock, availible && outStockToggle.value);
-            SetVisibility(inStock, availible && inStockToggle.value);
+            SetVisibility(powerToggle, available && manager.powerAvailible);
+            SetVisibility(outStockToggle, available && manager.outStockAvailible);
+            SetVisibility(inStockToggle, available && manager.inStockAvailible);
+            SetVisibility(power, available && powerToggle.value);
+            SetVisibility(outStock, available && outStockToggle.value);
+            SetVisibility(inStock, available && inStockToggle.value);
         }
 
         private static void SetVisibility(VisualElement element, bool visible)
