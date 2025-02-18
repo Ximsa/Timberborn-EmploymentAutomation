@@ -4,34 +4,25 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 	<ItemGroup>
-		<Reference Include="G:\GOG Games\Timberborn Update 6\Timberborn_Data\Managed\T*.dll" />
-		<Reference Include="G:\GOG Games\Timberborn Update 6\Timberborn_Data\Managed\U*.dll" />
-		<Reference Include="G:\GOG Games\Timberborn Update 6\Timberborn_Data\Managed\B*.dll" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Reference Include="TimberApi">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.BottomBarSystem">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.BottomBarSystem.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.BuildingSpecificationSystem">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.BuildingSpecificationSystem.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.EntityLinkerSystem">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.EntityLinkerSystem.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.SpecificationSystem">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.SpecificationSystem.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.Tools">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.Tools.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.UIBuilderSystem">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.UIBuilderSystem.dll</HintPath>
-	  </Reference>
-	  <Reference Include="TimberApi.UIPresets">
-	    <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.8.0\core\TimberApi.UIPresets.dll</HintPath>
-	  </Reference>
+		<Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\T*.dll" />
+		<Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\U*.dll" />
+		<Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\B*.dll" />
+		<Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\System.Collections.Immutable.dll" />
+		
+		<Reference Include="TimberApi">
+		  <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.9.1\version-0.7\core\TimberApi.dll</HintPath>
+		</Reference>
+		<Reference Include="TimberApi.EntityLinkerSystem">
+		  <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.9.1\version-0.7\core\TimberApi.EntityLinkerSystem.dll</HintPath>
+		</Reference>
+		<Reference Include="TimberApi.SpecificationSystem">
+		  <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.9.1\version-0.7\core\TimberApi.SpecificationSystem.dll</HintPath>
+		</Reference>
+		<Reference Include="TimberApi.UIBuilderSystem">
+		  <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.9.1\version-0.7\core\TimberApi.UIBuilderSystem.dll</HintPath>
+		</Reference>
+		<Reference Include="TimberApi.UIPresets">
+		  <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberapi_2463537_0.7.9.1\version-0.7\core\TimberApi.UIPresets.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 </Project>

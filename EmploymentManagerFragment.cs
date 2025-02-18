@@ -1,14 +1,16 @@
-﻿using TimberApi.UIBuilderSystem;
+﻿using EmploymentAutomation.UI;
+using TimberApi.UIBuilderSystem;
 using Timberborn.BaseComponentSystem;
 using Timberborn.EntityPanelSystem;
 using UnityEngine;
 using UnityEngine.UIElements;
-using EmploymentAutomation.UIPresets;
 
 namespace EmploymentAutomation
 {
     public class EmploymentManagerFragment : IEntityPanelFragment
     {
+        private const string PercentageFormat = "P0";
+        
         private readonly UIBuilder builder;
         private VisualElement root;
         private Toggle outStockToggle;
@@ -45,19 +47,19 @@ namespace EmploymentAutomation
         public void ShowFragment(BaseComponent entity)
         {
             manager = entity.GetComponentFast<EmploymentManagerComponent>();
-            bool availible = manager != null && manager.available;
-            if (availible)
+            bool available = manager != null && manager.available;
+            if (available)
             {
                 powerToggle.value = manager.powerActive;
                 power.value = new Vector2(manager.powerLow, manager.powerHigh);
                 outStockToggle.value = manager.outStockActive;
                 outStock.value = new Vector2(manager.outStockLow, manager.outStockHigh);
-                outStock.label = manager.outStockLow.ToString("0.00") + " - " + manager.outStockHigh.ToString("0.00");
+                outStock.label = manager.outStockLow.ToString(PercentageFormat) + " - " + manager.outStockHigh.ToString(PercentageFormat);
                 inStockToggle.value = manager.inStockActive;
                 inStock.value = new Vector2(manager.inStockLow, manager.inStockHigh);
-                inStock.label = manager.inStockLow.ToString("0.00") + " - " + manager.inStockHigh.ToString("0.00");
+                inStock.label = manager.inStockLow.ToString(PercentageFormat) + " - " + manager.inStockHigh.ToString(PercentageFormat);
             }
-            SetVisibility(root, availible);
+            SetVisibility(root, available);
         }
 
         public void UpdateFragment()
@@ -65,9 +67,9 @@ namespace EmploymentAutomation
             bool available = manager != null && manager.available;
             if (available)
             {
-                inStock.label = manager.inStockLow.ToString("0.00") + " - " + manager.inStockHigh.ToString("0.00");
-                outStock.label = manager.outStockLow.ToString("0.00") + " - " + manager.outStockHigh.ToString("0.00");
-                power.label = manager.powerLow.ToString("0.00") + " - " + manager.powerHigh.ToString("0.00");
+                inStock.label = manager.inStockLow.ToString(PercentageFormat) + " - " + manager.inStockHigh.ToString(PercentageFormat);
+                outStock.label = manager.outStockLow.ToString(PercentageFormat) + " - " + manager.outStockHigh.ToString(PercentageFormat);
+                power.label = manager.powerLow.ToString(PercentageFormat) + " - " + manager.powerHigh.ToString(PercentageFormat);
                 manager.powerActive = powerToggle.value;
                 manager.outStockActive = outStockToggle.value;
                 manager.inStockActive = inStockToggle.value;
@@ -78,9 +80,9 @@ namespace EmploymentAutomation
                 manager.inStockLow = inStock.value.x;
                 manager.inStockHigh = inStock.value.y;
             }
-            SetVisibility(powerToggle, available && manager.powerAvailible);
-            SetVisibility(outStockToggle, available && manager.outStockAvailible);
-            SetVisibility(inStockToggle, available && manager.inStockAvailible);
+            SetVisibility(powerToggle, available && manager.powerAvailable);
+            SetVisibility(outStockToggle, available && manager.outStockAvailable);
+            SetVisibility(inStockToggle, available && manager.inStockAvailable);
             SetVisibility(power, available && powerToggle.value);
             SetVisibility(outStock, available && outStockToggle.value);
             SetVisibility(inStock, available && inStockToggle.value);

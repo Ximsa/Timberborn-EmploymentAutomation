@@ -6,64 +6,64 @@ using TimberApi.UIBuilderSystem.StylingElements;
 using Timberborn.CoreUI;
 using UnityEngine.UIElements;
 
-namespace EmploymentAutomation.UIPresets
+namespace EmploymentAutomation.UI
 {
-	public class PanelFragment : PanelFragment<PanelFragment>
-	{
-		protected override PanelFragment BuilderInstance
-		{
-			get
-			{
-				return this;
-			}
-		}
-	}
-	public abstract class PanelFragment<TBuilder> : BaseBuilder<TBuilder, NineSliceVisualElement> where TBuilder : BaseBuilder<TBuilder, NineSliceVisualElement>
-	{
-		private const string BackgroundClass = "PanelFragment";
+    public class PanelFragment : PanelFragment<PanelFragment>
+    {
+        protected override PanelFragment BuilderInstance => this;
+    }
 
-		private VisualElementBuilder visualElementBuilder;
-		protected override NineSliceVisualElement InitializeRoot()
-		{
-			this.visualElementBuilder = this.UIBuilder.Create<VisualElementBuilder>();
-			this.visualElementBuilder.AddClass(BackgroundClass);
-			this.visualElementBuilder.SetPadding(new Padding(new Length(12f, LengthUnit.Pixel), new Length(8f, LengthUnit.Pixel)));
-			return this.visualElementBuilder.Build();
-		}
+    public abstract class PanelFragment<TBuilder> : BaseBuilder<TBuilder, NineSliceVisualElement>
+        where TBuilder : BaseBuilder<TBuilder, NineSliceVisualElement>
+    {
+        private const string BackgroundClass = "PanelFragment";
 
-		public TBuilder AddComponent(Type builderType)
-		{
-			base.Root.Add(this.UIBuilder.Build(builderType));
-			return this.BuilderInstance;
-		}
+        private VisualElementBuilder visualElementBuilder;
 
-		public TBuilder AddComponent(VisualElement visualElement)
-		{
-			base.Root.Add(visualElement);
-			return this.BuilderInstance;
-		}
+        protected override NineSliceVisualElement InitializeRoot()
+        {
+            visualElementBuilder = UIBuilder.Create<VisualElementBuilder>();
+            visualElementBuilder.AddClass(BackgroundClass);
+            visualElementBuilder.SetPadding(
+                new Padding(new Length(12f, LengthUnit.Pixel),
+                    new Length(8f, LengthUnit.Pixel)));
+            return visualElementBuilder.Build();
+        }
 
-		public TBuilder SetFlexDirection(FlexDirection direction)
-		{
-			base.Root.style.flexDirection = direction;
-			return this.BuilderInstance;
-		}
+        public TBuilder AddComponent(Type builderType)
+        {
+            Root.Add(UIBuilder.Build(builderType));
+            return BuilderInstance;
+        }
 
-		public TBuilder SetWidth(Length width)
-		{
-			base.Root.style.width = width;
-			return this.BuilderInstance;
-		}
+        public TBuilder AddComponent(VisualElement visualElement)
+        {
+            Root.Add(visualElement);
+            return BuilderInstance;
+        }
 
-		public TBuilder SetJustifyContent(Justify justify)
-		{
-			base.Root.style.justifyContent = justify;
-			return this.BuilderInstance;
-		}
+        public TBuilder SetFlexDirection(FlexDirection direction)
+        {
+            Root.style.flexDirection = direction;
+            return BuilderInstance;
+        }
 
-		protected override void InitializeStyleSheet(StyleSheetBuilder styleSheetBuilder)
-		{
-			styleSheetBuilder.AddNineSlicedBackgroundClass(BackgroundClass, "ui/images/backgrounds/bg-3", 9f, 0.5f);
-		}
-	}
+        public TBuilder SetWidth(Length width)
+        {
+            Root.style.width = width;
+            return BuilderInstance;
+        }
+
+        public TBuilder SetJustifyContent(Justify justify)
+        {
+            Root.style.justifyContent = justify;
+            return BuilderInstance;
+        }
+
+        protected override void InitializeStyleSheet(StyleSheetBuilder styleSheetBuilder)
+        {
+            styleSheetBuilder.AddNineSlicedBackgroundClass(
+                BackgroundClass, "ui/images/backgrounds/bg-3", 9f, 0.5f);
+        }
+    }
 }

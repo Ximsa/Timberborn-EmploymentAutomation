@@ -1,6 +1,5 @@
 ﻿using Bindito.Core;
-using EmploymentAutomation.UIPresets;
-using System;
+using EmploymentAutomation.UI;
 using Timberborn.EntityPanelSystem;
 using Timberborn.TemplateSystem;
 using Timberborn.Workshops;
@@ -8,21 +7,21 @@ using Timberborn.Workshops;
 namespace EmploymentAutomation
 {
     [Context("Game")]
-    public class Configurator : IConfigurator
+    public class EmploymentAutomationConfigurator : Configurator
     {
-        public void Configure(IContainerDefinition containerDefinition)
+        protected override void Configure()
         {
-            containerDefinition.Bind<DistrictResourceCounterService>().AsSingleton();
-            containerDefinition.Bind<EmploymentManagerPanel>().AsTransient();
-            containerDefinition.Bind<PanelFragment>().AsTransient();
-            containerDefinition.Bind<EmploymentManagerFragment>().AsTransient();
-            containerDefinition.MultiBind<EntityPanelModule>().ToProvider<EntityPanelModuleProvider>().AsSingleton();
-            containerDefinition.MultiBind<TemplateModule>().ToProvider(new Func<TemplateModule>(ProvideTemplateModule)).AsSingleton();
+            Bind<DistrictResourceCounterService>().AsSingleton();
+            Bind<EmploymentManagerPanel>().AsTransient();
+            Bind<PanelFragment>().AsTransient();
+            Bind<EmploymentManagerFragment>().AsTransient();
+            MultiBind<EntityPanelModule>().ToProvider<EntityPanelModuleProvider>().AsSingleton();
+            MultiBind<TemplateModule>().ToProvider(ProvideTemplateModule).AsSingleton();
         }
 
         private static TemplateModule ProvideTemplateModule()
         {
-            TemplateModule.Builder builder = new TemplateModule.Builder();
+            var builder = new TemplateModule.Builder();
             builder.AddDecorator<Manufactory, EmploymentManagerComponent>();
             return builder.Build();
         }
@@ -35,9 +34,10 @@ namespace EmploymentAutomation
             {
                 this.employmentManagerFragment = employmentManagerFragment;
             }
+
             public EntityPanelModule Get()
             {
-                EntityPanelModule.Builder builder = new EntityPanelModule.Builder();
+                var builder = new EntityPanelModule.Builder();
                 builder.AddMiddleFragment(employmentManagerFragment);
                 return builder.Build();
             }

@@ -1,10 +1,9 @@
-﻿
-using Bindito.Core;
+﻿using Bindito.Core;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Timberborn.BuildingsBlocking;
 using Timberborn.GameDistricts;
-using Timberborn.Goods;
 using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
 using Timberborn.SingletonSystem;
@@ -22,11 +21,13 @@ namespace EmploymentAutomation
         private Workplace workplace;
         private Manufactory manufactory;
         private DistrictBuilding districtBuilding;
-        private PausableBuilding pausableBuilding;
+        private BlockableBuilding blockableBuilding;
         private MechanicalNode mechanicalNode;
-        private MechanicalNodeSpecification mechanicalNodeSpecification;
+        private MechanicalNodeSpec mechanicalNodeSpecification;
 
-        private static readonly ComponentKey EmploymentManagerComponentKey = new ComponentKey("EmploymentManagerComponent");
+        private static readonly ComponentKey EmploymentManagerComponentKey =
+            new ComponentKey("EmploymentManagerComponent");
+
         private static readonly PropertyKey<bool> PowerActiveKey = new PropertyKey<bool>("PowerActive");
         private static readonly PropertyKey<float> PowerHighKey = new PropertyKey<float>("PowerHigh");
         private static readonly PropertyKey<float> PowerLowKey = new PropertyKey<float>("PowerLow");
@@ -38,9 +39,9 @@ namespace EmploymentAutomation
         private static readonly PropertyKey<float> InStockLowKey = new PropertyKey<float>("InStockLow");
 
         public bool available = false;
-        public bool powerAvailible = false;
-        public bool outStockAvailible = false;
-        public bool inStockAvailible = false;
+        public bool powerAvailable = false;
+        public bool outStockAvailable = false;
+        public bool inStockAvailable = false;
 
         public bool powerActive = false;
         public float powerHigh = 0.75f;
@@ -53,7 +54,8 @@ namespace EmploymentAutomation
         public float inStockLow = 0.05f;
 
         [Inject]
-        public void InjectDependencies(DistrictResourceCounterService districtResourceCounterService, EventBus eventBus)
+        public void InjectDependencies(
+            DistrictResourceCounterService districtResourceCounterService, EventBus eventBus)
         {
             eventBus.Register(this);
             this.districtResourceCounterService = districtResourceCounterService;
@@ -67,118 +69,141 @@ namespace EmploymentAutomation
 
         public void UpdateComponents()
         {
-            workplace = base.GetComponentFast<Workplace>();
-            manufactory = base.GetComponentFast<Manufactory>();
-            districtBuilding = base.GetComponentFast<DistrictBuilding>();
-            pausableBuilding = base.GetComponentFast<PausableBuilding>();
-            if (Type.GetType("IgorZ.SmartPower.Core.Configurator") == null) // smartpower not detected, provide own power management
+            workplace = GetComponentFast<Workplace>();
+            manufactory = GetComponentFast<Manufactory>();
+            districtBuilding = GetComponentFast<DistrictBuilding>();
+            blockableBuilding = GetComponentFast<BlockableBuilding>();
+            if (AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
+                .Any(x => x.Namespace is "IgorZ.SmartPower.Core"))
             {
-                mechanicalNode = base.GetComponentFast<MechanicalNode>();
-                mechanicalNodeSpecification = base.GetComponentFast<MechanicalNodeSpecification>();
+                return;
             }
+
+            mechanicalNode = GetComponentFast<MechanicalNode>();
+            mechanicalNodeSpecification = GetComponentFast<MechanicalNodeSpec>();
         }
 
         public override void Tick()
         {
-            available = (pausableBuilding != null) && (districtBuilding != null) && (districtBuilding.InstantDistrict != null) && (workplace != null) && (manufactory != null) && manufactory.HasCurrentRecipe && (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
-            if(available)
+            available = (blockableBuilding != null) &&
+                        (districtBuilding != null) &&
+                        (districtBuilding.InstantDistrict != null) &&
+                        (workplace != null) &&
+                        (manufactory != null) &&
+                        manufactory.HasCurrentRecipe &&
+                        (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
+            if (available)
             {
-                powerAvailible = mechanicalNodeSpecification != null && mechanicalNode != null && mechanicalNode.Graph != null && mechanicalNode.IsConsumer;
-                outStockAvailible = manufactory.CurrentRecipe.Products.Count != 0;
-                inStockAvailible = manufactory.CurrentRecipe.Ingredients.Count != 0;
+                powerAvailable = mechanicalNodeSpecification != null && mechanicalNode != null &&
+                                 mechanicalNode.Graph != null && mechanicalNode.IsConsumer;
+                outStockAvailable = !manufactory.CurrentRecipe.Products.IsEmpty;
+                inStockAvailable = !manufactory.CurrentRecipe.Ingredients.IsEmpty;
             }
-            bool checkOutStock = outStockAvailible && outStockActive;
-            bool checkInStock = inStockAvailible && inStockActive;
-            bool checkPower = powerActive && powerAvailible;
 
-            if (available && (checkOutStock || checkInStock || checkPower))
+            var checkOutStock = outStockAvailable && outStockActive;
+            var checkInStock = inStockAvailable && inStockActive;
+            var checkPower = powerAvailable && powerActive;
+
+            if (!available || (!checkOutStock && !checkInStock && !checkPower)) return;
+            // obtain power availability. USes Battery charge when availible. Falls back to network efficiency when no battery is attached
+            var powerMeter = 1.0f;
+            if (checkPower)
             {
-                // obtain power availability
-                float powerMeter = 1.0f;
-                if (checkPower)
+                var batteries = mechanicalNode.Graph!.BatteryControllers
+                    .Where(x => x.Operational)
+                    .ToImmutableArray();
+                if (batteries.IsEmpty)
                 {
-                    
-                    MechanicalGraphPower currentPower = mechanicalNode.Graph.CurrentPower;
+                    // need to recalculate efficiency to account for own activation
+                    var currentPower = mechanicalNode.Graph!.CurrentPower;
                     powerMeter = Mathf.Min(
-                        (currentPower.PowerSupply + currentPower.BatteryPower)/
-                        (currentPower.PowerDemand + (GetCurrentDesiredWorkers() == 0 ? mechanicalNodeSpecification.PowerInput : 0f)),
+                        (currentPower.PowerSupply + currentPower.BatteryPower) /
+                        (currentPower.PowerDemand + (GetCurrentDesiredWorkers() == 0
+                            ? mechanicalNodeSpecification.PowerInput
+                            : 0f)),
                         1f);
                 }
-                // obtain fillrate of output
-                IReadOnlyList<GoodAmount> products = manufactory.CurrentRecipe.Products;
-                float productFillrate = 1.0f;
-                if (checkOutStock) 
+                else
                 {
-                    foreach (GoodAmount product in products)
-                    {
-                        productFillrate = Mathf.Min(productFillrate, districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.GoodId));
-                    } 
-                }
-                // obtain fillrate of input
-                IReadOnlyList<GoodAmount> ingredients = manufactory.CurrentRecipe.Ingredients;
-                float ingredientFillrate = 1.0f;
-                if (checkInStock)
-                {
-                    foreach (GoodAmount incredient in ingredients)
-                    {
-                        ingredientFillrate = Mathf.Min(ingredientFillrate, districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, incredient.GoodId));
-                    }
-                }
-                // employment trigger bounds
-                Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
-                if (checkPower)
-                {
-                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower(powerMeter));
-                }
-                if (checkOutStock)
-                {
-                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsProduct(productFillrate));
-                }
-                if (checkInStock)
-                {
-                    bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
-                }
-                // perform employment
-                int currentDesiredWorkers = this.GetCurrentDesiredWorkers();
-                if (currentDesiredWorkers < bounds.x)
-                {
-                    this.IncreaseDesiredWorkers();
-                }
-                else if (currentDesiredWorkers > bounds.y)
-                {
-                    this.DecreaseDesiredWorkers();
+                    // calculate battery fill level
+                    powerMeter = batteries.Select(x => x.Charge).Sum() /
+                                 batteries.Select(x => x.Capacity).Sum();
                 }
             }
-        }
 
-        public int GetCurrentDesiredWorkers()
-        {
-            if (pausableBuilding.Paused)
+            // obtain fillrate of output
+            var products = manufactory.CurrentRecipe.Products;
+            var productFillrate = 1.0f;
+            if (checkOutStock)
             {
-                return 0;
+                productFillrate = Enumerable.Aggregate(
+                    products,
+                    productFillrate,
+                    (current, product) =>
+                        Mathf.Min(
+                            current,
+                            districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.Id)));
             }
-            else
+
+            // obtain fillrate of input
+            var ingredients = manufactory.CurrentRecipe.Ingredients;
+            var ingredientFillrate = 1.0f;
+            if (checkInStock)
             {
-                return workplace.DesiredWorkers;
+                ingredientFillrate = Enumerable.Aggregate(
+                    ingredients,
+                    ingredientFillrate,
+                    (current, ingredient) => Mathf.Min(
+                        current,
+                        districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, ingredient.Id)));
+            }
+
+            // employment trigger bounds
+            var bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
+            if (checkPower)
+            {
+                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower(powerMeter));
+            }
+
+            if (checkOutStock)
+            {
+                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsProduct(productFillrate));
+            }
+
+            if (checkInStock)
+            {
+                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
+            }
+
+            // perform employment
+            var currentDesiredWorkers = GetCurrentDesiredWorkers();
+            if (currentDesiredWorkers < bounds.x)
+            {
+                IncreaseDesiredWorkers();
+            }
+            else if (currentDesiredWorkers > bounds.y)
+            {
+                DecreaseDesiredWorkers();
             }
         }
 
         public void IncreaseDesiredWorkers()
         {
-            if (pausableBuilding.Paused)
-            {
-                pausableBuilding.Resume();
-            }
-            else
+            if (blockableBuilding.IsUnblocked)
             {
                 workplace.IncreaseDesiredWorkers();
             }
+            else
+            {
+                blockableBuilding.Unblock(this);
+            }
         }
+
         public void DecreaseDesiredWorkers()
         {
             if (workplace.DesiredWorkers <= 1)
             {
-                pausableBuilding.Pause();
+                blockableBuilding.Block(this);
             }
             else
             {
@@ -186,48 +211,51 @@ namespace EmploymentAutomation
             }
         }
 
-        public Vector2Int GetEmploymentBoundsPower(float powerMeter)
-        {
-            return new Vector2Int(
+        private int GetCurrentDesiredWorkers() => blockableBuilding.IsUnblocked ? workplace.DesiredWorkers : 0;
+
+        private Vector2Int GetEmploymentBoundsPower(float powerMeter) =>
+            new Vector2Int(
                 powerMeter < powerHigh ? 0 : workplace.MaxWorkers, // min
                 powerMeter < powerLow ? 0 : workplace.MaxWorkers); // max
-        }
 
-        public Vector2Int GetEmploymentBoundsProduct(float fillrate)
+        private Vector2Int GetEmploymentBoundsProduct(float fillrate)
         {
-            Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, 0);
-            float offset = (outStockHigh - outStockLow) / (workplace.MaxWorkers*2-1);
-            float low = outStockLow;
-            float high = outStockHigh;
-            for (int i = 0; i < workplace.MaxWorkers; i++)
+            var bounds = new Vector2Int(workplace.MaxWorkers, 0);
+            var offset = (outStockHigh - outStockLow) / (workplace.MaxWorkers * 2 - 1);
+            var low = outStockLow;
+            var high = outStockHigh;
+            for (var i = 0; i < workplace.MaxWorkers; i++)
             {
                 bounds.x -= Convert.ToInt32(fillrate > low); // fillrate above low threshold? remove one minimum worker
                 bounds.y += Convert.ToInt32(fillrate < high); // fillrate below high threshold? add one maximum worker
                 low += offset;
                 high -= offset;
             }
+
             return bounds;
         }
 
-        public Vector2Int GetEmploymentBoundsIngredient(float fillrate)
+        private Vector2Int GetEmploymentBoundsIngredient(float fillrate)
         {
-            Vector2Int bounds = new Vector2Int(workplace.MaxWorkers, 0);
-            float offset = (inStockHigh - inStockLow) / (workplace.MaxWorkers * 2 - 1);
-            float low = inStockLow;
-            float high = inStockHigh;
-            for (int i = 0; i < workplace.MaxWorkers; i++)
+            var bounds = new Vector2Int(workplace.MaxWorkers, 0);
+            var offset = (inStockHigh - inStockLow) / (workplace.MaxWorkers * 2 - 1);
+            var low = inStockLow;
+            var high = inStockHigh;
+            for (var i = 0; i < workplace.MaxWorkers; i++)
             {
                 bounds.y += Convert.ToInt32(fillrate > low); // fillrate above low threshold? add one maximum worker
-                bounds.x -= Convert.ToInt32(fillrate < high); // fillrate below high threshold? remove one minimum worker
+                bounds.x -= Convert.ToInt32(fillrate <
+                                            high); // fillrate below high threshold? remove one minimum worker
                 low += offset;
                 high -= offset;
             }
+
             return bounds;
         }
 
         public void Save(IEntitySaver entitySaver)
         {
-            IObjectSaver component = entitySaver.GetComponent(EmploymentManagerComponentKey);
+            var component = entitySaver.GetComponent(EmploymentManagerComponentKey);
             component.Set(PowerActiveKey, powerActive);
             component.Set(PowerLowKey, powerLow);
             component.Set(PowerHighKey, powerHigh);
@@ -236,14 +264,14 @@ namespace EmploymentAutomation
             component.Set(OutStockHighKey, outStockHigh);
             component.Set(InStockActiveKey, inStockActive);
             component.Set(InStockLowKey, inStockLow);
-            component.Set(InStockHighKey, inStockHigh);   
+            component.Set(InStockHighKey, inStockHigh);
         }
 
         public void Load(IEntityLoader entityLoader)
         {
             try
             {
-                IObjectLoader component = entityLoader.GetComponent(EmploymentManagerComponentKey);
+                var component = entityLoader.GetComponent(EmploymentManagerComponentKey);
                 powerActive = component.Get(PowerActiveKey);
                 outStockActive = component.Get(OutStockActiveKey);
                 outStockLow = component.Get(OutStockLowKey);
@@ -253,7 +281,8 @@ namespace EmploymentAutomation
                 inStockHigh = component.Get(InStockHighKey);
                 powerLow = component.Get(PowerLowKey);
                 powerHigh = component.Get(PowerHighKey);
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
