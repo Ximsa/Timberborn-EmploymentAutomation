@@ -22,33 +22,33 @@ namespace EmploymentAutomation.UI
             visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
                 .SetName("power_toggle")
                 .SetLocKey("Ximsa.EmploymentAutomation.PowerToggle")
-                .Build());
-            visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
+                .BuildAndInitialize());
+            visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
                 .Small()
                 .SetName("power")
-                .SetLocKey("Ximsa.EmploymentAutomation.None")
+                .SetLabel("Ximsa.EmploymentAutomation.None")
                 .SetLowLimit(0)
                 .SetHighLimit(1)
-                .Build());
+                .BuildAndInitialize());
             visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
                 .SetName("in_stock_toggle")
                 .SetLocKey("Ximsa.EmploymentAutomation.IngredientToggle")
-                .Build());
-            visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
+                .BuildAndInitialize());
+            visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
                 .Small()
                 .SetName("in_stock")
-                .SetLocKey("Ximsa.EmploymentAutomation.None")
+                .SetLabel("Ximsa.EmploymentAutomation.None")
                 .SetLowLimit(0)
                 .SetHighLimit(1)
-                .Build());
+                .BuildAndInitialize());
             visualElementBuilder.AddComponent(UIBuilder.Create<GameToggle>()
                 .SetName("out_stock_toggle")
                 .SetLocKey("Ximsa.EmploymentAutomation.ProductToggle")
                 .Build());
-            visualElementBuilder.AddComponent(UIBuilder.Create<GameMinMaxSlider>()
+            visualElementBuilder.AddComponent(UIBuilder.Create<GameTextMinMaxSlider>()
                 .Small()
                 .SetName("out_stock")
-                .SetLocKey("Ximsa.EmploymentAutomation.None")
+                .SetLabel("Ximsa.EmploymentAutomation.None")
                 .SetLowLimit(0)
                 .SetHighLimit(1)
                 .Build());

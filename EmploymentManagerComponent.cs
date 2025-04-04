@@ -1,7 +1,7 @@
-﻿using Bindito.Core;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Bindito.Core;
 using Timberborn.BuildingsBlocking;
 using Timberborn.GameDistricts;
 using Timberborn.MechanicalSystem;
@@ -10,21 +10,13 @@ using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.Workshops;
 using Timberborn.WorkSystem;
+using Timberborn.WorldPersistence;
 using UnityEngine;
 
 namespace EmploymentAutomation
 {
     public class EmploymentManagerComponent : TickableComponent, IPersistentEntity
     {
-        private DistrictResourceCounterService districtResourceCounterService;
-
-        private Workplace workplace;
-        private Manufactory manufactory;
-        private DistrictBuilding districtBuilding;
-        private BlockableBuilding blockableBuilding;
-        private MechanicalNode mechanicalNode;
-        private MechanicalNodeSpec mechanicalNodeSpecification;
-
         private static readonly ComponentKey EmploymentManagerComponentKey =
             new ComponentKey("EmploymentManagerComponent");
 
@@ -38,20 +30,68 @@ namespace EmploymentAutomation
         private static readonly PropertyKey<float> InStockHighKey = new PropertyKey<float>("InStockHigh");
         private static readonly PropertyKey<float> InStockLowKey = new PropertyKey<float>("InStockLow");
 
-        public bool available = false;
-        public bool powerAvailable = false;
-        public bool outStockAvailable = false;
-        public bool inStockAvailable = false;
+        public bool available;
+        public bool powerAvailable;
+        public bool outStockAvailable;
+        public bool inStockAvailable;
 
-        public bool powerActive = false;
+        public bool powerActive;
         public float powerHigh = 0.75f;
         public float powerLow = 0.50f;
-        public bool outStockActive = false;
+        public bool outStockActive;
         public float outStockHigh = 0.95f;
         public float outStockLow = 0.85f;
-        public bool inStockActive = false;
+        public bool inStockActive;
         public float inStockHigh = 0.15f;
         public float inStockLow = 0.05f;
+        private BlockableBuilding blockableBuilding;
+        private DistrictBuilding districtBuilding;
+        private DistrictResourceCounterService districtResourceCounterService;
+        private Manufactory manufactory;
+        private MechanicalNode mechanicalNode;
+        private MechanicalNodeSpec mechanicalNodeSpecification;
+
+        private Workplace workplace;
+
+        public void Awake()
+        {
+            UpdateComponents();
+        }
+
+        public void Save(IEntitySaver entitySaver)
+        {
+            var component = entitySaver.GetComponent(EmploymentManagerComponentKey);
+            component.Set(PowerActiveKey, powerActive);
+            component.Set(PowerLowKey, powerLow);
+            component.Set(PowerHighKey, powerHigh);
+            component.Set(OutStockActiveKey, outStockActive);
+            component.Set(OutStockLowKey, outStockLow);
+            component.Set(OutStockHighKey, outStockHigh);
+            component.Set(InStockActiveKey, inStockActive);
+            component.Set(InStockLowKey, inStockLow);
+            component.Set(InStockHighKey, inStockHigh);
+        }
+
+        public void Load(IEntityLoader entityLoader)
+        {
+            try
+            {
+                var component = entityLoader.GetComponent(EmploymentManagerComponentKey);
+                powerActive = component.Get(PowerActiveKey);
+                outStockActive = component.Get(OutStockActiveKey);
+                outStockLow = component.Get(OutStockLowKey);
+                outStockHigh = component.Get(OutStockHighKey);
+                inStockActive = component.Get(InStockActiveKey);
+                inStockLow = component.Get(InStockLowKey);
+                inStockHigh = component.Get(InStockHighKey);
+                powerLow = component.Get(PowerLowKey);
+                powerHigh = component.Get(PowerHighKey);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
 
         [Inject]
         public void InjectDependencies(
@@ -59,11 +99,6 @@ namespace EmploymentAutomation
         {
             eventBus.Register(this);
             this.districtResourceCounterService = districtResourceCounterService;
-            UpdateComponents();
-        }
-
-        public void Awake()
-        {
             UpdateComponents();
         }
 
@@ -75,9 +110,7 @@ namespace EmploymentAutomation
             blockableBuilding = GetComponentFast<BlockableBuilding>();
             if (AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
                 .Any(x => x.Namespace is "IgorZ.SmartPower.Core"))
-            {
                 return;
-            }
 
             mechanicalNode = GetComponentFast<MechanicalNode>();
             mechanicalNodeSpecification = GetComponentFast<MechanicalNodeSpec>();
@@ -85,11 +118,11 @@ namespace EmploymentAutomation
 
         public override void Tick()
         {
-            available = (blockableBuilding != null) &&
-                        (districtBuilding != null) &&
-                        (districtBuilding.InstantDistrict != null) &&
-                        (workplace != null) &&
-                        (manufactory != null) &&
+            available = blockableBuilding != null &&
+                        districtBuilding != null &&
+                        districtBuilding.InstantDistrict != null &&
+                        workplace != null &&
+                        manufactory != null &&
                         manufactory.HasCurrentRecipe &&
                         (manufactory.CurrentRecipe.ProducesProducts || manufactory.CurrentRecipe.ConsumesIngredients);
             if (available)
@@ -135,7 +168,6 @@ namespace EmploymentAutomation
             var products = manufactory.CurrentRecipe.Products;
             var productFillrate = 1.0f;
             if (checkOutStock)
-            {
                 productFillrate = Enumerable.Aggregate(
                     products,
                     productFillrate,
@@ -143,80 +175,61 @@ namespace EmploymentAutomation
                         Mathf.Min(
                             current,
                             districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.Id)));
-            }
 
             // obtain fillrate of input
             var ingredients = manufactory.CurrentRecipe.Ingredients;
             var ingredientFillrate = 1.0f;
             if (checkInStock)
-            {
                 ingredientFillrate = Enumerable.Aggregate(
                     ingredients,
                     ingredientFillrate,
                     (current, ingredient) => Mathf.Min(
                         current,
                         districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, ingredient.Id)));
-            }
 
             // employment trigger bounds
             var bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
-            if (checkPower)
-            {
-                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower(powerMeter));
-            }
+            if (checkPower) bounds = Vector2Int.Min(bounds, GetEmploymentBoundsPower(powerMeter));
 
-            if (checkOutStock)
-            {
-                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsProduct(productFillrate));
-            }
+            if (checkOutStock) bounds = Vector2Int.Min(bounds, GetEmploymentBoundsProduct(productFillrate));
 
-            if (checkInStock)
-            {
-                bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
-            }
+            if (checkInStock) bounds = Vector2Int.Min(bounds, GetEmploymentBoundsIngredient(ingredientFillrate));
 
             // perform employment
             var currentDesiredWorkers = GetCurrentDesiredWorkers();
             if (currentDesiredWorkers < bounds.x)
-            {
                 IncreaseDesiredWorkers();
-            }
-            else if (currentDesiredWorkers > bounds.y)
-            {
-                DecreaseDesiredWorkers();
-            }
+            else if (currentDesiredWorkers > bounds.y) DecreaseDesiredWorkers();
         }
 
         public void IncreaseDesiredWorkers()
         {
             if (blockableBuilding.IsUnblocked)
-            {
                 workplace.IncreaseDesiredWorkers();
-            }
             else
-            {
                 blockableBuilding.Unblock(this);
-            }
         }
 
         public void DecreaseDesiredWorkers()
         {
             if (workplace.DesiredWorkers <= 1)
-            {
                 blockableBuilding.Block(this);
-            }
             else
-            {
                 workplace.DecreaseDesiredWorkers();
-            }
         }
 
-        private int GetCurrentDesiredWorkers() => blockableBuilding.IsUnblocked ? workplace.DesiredWorkers : 0;
+        private int GetCurrentDesiredWorkers()
+        {
+            return blockableBuilding.IsUnblocked ? workplace.DesiredWorkers : 0;
+        }
 
-        private Vector2Int GetEmploymentBoundsPower(float powerMeter) =>
-            new Vector2Int(
+        private Vector2Int GetEmploymentBoundsPower(float powerMeter)
+        {
+            return new Vector2Int(
                 powerMeter < powerHigh ? 0 : workplace.MaxWorkers, // min
-                powerMeter < powerLow ? 0 : workplace.MaxWorkers); // max
+                powerMeter < powerLow ? 0 : workplace.MaxWorkers);
+            // max
+        }
 
         private Vector2Int GetEmploymentBoundsProduct(float fillrate)
         {
@@ -251,41 +264,6 @@ namespace EmploymentAutomation
             }
 
             return bounds;
-        }
-
-        public void Save(IEntitySaver entitySaver)
-        {
-            var component = entitySaver.GetComponent(EmploymentManagerComponentKey);
-            component.Set(PowerActiveKey, powerActive);
-            component.Set(PowerLowKey, powerLow);
-            component.Set(PowerHighKey, powerHigh);
-            component.Set(OutStockActiveKey, outStockActive);
-            component.Set(OutStockLowKey, outStockLow);
-            component.Set(OutStockHighKey, outStockHigh);
-            component.Set(InStockActiveKey, inStockActive);
-            component.Set(InStockLowKey, inStockLow);
-            component.Set(InStockHighKey, inStockHigh);
-        }
-
-        public void Load(IEntityLoader entityLoader)
-        {
-            try
-            {
-                var component = entityLoader.GetComponent(EmploymentManagerComponentKey);
-                powerActive = component.Get(PowerActiveKey);
-                outStockActive = component.Get(OutStockActiveKey);
-                outStockLow = component.Get(OutStockLowKey);
-                outStockHigh = component.Get(OutStockHighKey);
-                inStockActive = component.Get(InStockActiveKey);
-                inStockLow = component.Get(InStockLowKey);
-                inStockHigh = component.Get(InStockHighKey);
-                powerLow = component.Get(PowerLowKey);
-                powerHigh = component.Get(PowerHighKey);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
         }
     }
 }

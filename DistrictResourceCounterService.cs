@@ -1,6 +1,6 @@
-﻿using Bindito.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Bindito.Core;
 using Timberborn.Common;
 using Timberborn.GameDistricts;
 using Timberborn.Goods;
@@ -13,18 +13,11 @@ namespace EmploymentAutomation
 {
     public class DistrictResourceCounterService : ITickableSingleton, IPostLoadableSingleton
     {
-        private InventoryService inventoryService;
-        private EventBus eventBus;
-
         private readonly Dictionary<DistrictCenter, Dictionary<string, int[]>> stockCounter =
             new Dictionary<DistrictCenter, Dictionary<string, int[]>>();
 
-        [Inject]
-        public void InjectDependencies(InventoryService inventoryService, EventBus eventBus)
-        {
-            this.inventoryService = inventoryService;
-            this.eventBus = eventBus;
-        }
+        private EventBus eventBus;
+        private InventoryService inventoryService;
 
         public void PostLoad()
         {
@@ -35,6 +28,13 @@ namespace EmploymentAutomation
         public void Tick()
         {
             UpdateResources();
+        }
+
+        [Inject]
+        public void InjectDependencies(InventoryService inventoryService, EventBus eventBus)
+        {
+            this.inventoryService = inventoryService;
+            this.eventBus = eventBus;
         }
 
         [OnEvent]
@@ -62,22 +62,16 @@ namespace EmploymentAutomation
         public float GetFillRate(DistrictCenter districtCenter, string goodId)
         {
             float result;
-            if (stockCounter.TryGetValue(districtCenter, out Dictionary<string, int[]> districtStockCounter))
+            if (stockCounter.TryGetValue(districtCenter, out var districtStockCounter))
             {
-                if (districtStockCounter.TryGetValue(goodId, out int[] goodStats))
+                if (districtStockCounter.TryGetValue(goodId, out var goodStats))
                 {
                     if (goodStats[0] == 0)
-                    {
                         result = 0f;
-                    }
                     else if (goodStats[1] == 0)
-                    {
                         result = 1f;
-                    }
                     else
-                    {
                         result = Mathf.Clamp01((float)goodStats[0] / goodStats[1]);
-                    }
                 }
                 else
                 {
@@ -95,10 +89,7 @@ namespace EmploymentAutomation
         private void UpdateResources()
         {
             ResetCounter();
-            foreach (var inventory in inventoryService.PublicOutputInventories)
-            {
-                AddInventoryToCounter(inventory);
-            }
+            foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);
         }
 
         private void ResetCounter()
@@ -119,23 +110,17 @@ namespace EmploymentAutomation
             var districtCenter = inventory.GetComponentFast<DistrictBuilding>().InstantDistrict;
             if (!districtCenter) return; // is inventory connected to a district?
             if (!stockCounter.ContainsKey(districtCenter))
-            {
                 stockCounter.Add(districtCenter, new Dictionary<string, int[]>());
-            }
 
             // Count capacities
             var capacityCache = new List<GoodAmount>();
             inventory.GetCapacity(capacityCache);
             foreach (var good in capacityCache.Where(good => inventory.Gives(good.GoodId)))
-            {
                 AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 1);
-            }
 
             // Count stock
             foreach (var good in inventory.Stock.Where(good => inventory.Gives(good.GoodId)))
-            {
                 AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 0);
-            }
         }
 
         private void AddAmountToCounter(DistrictCenter districtCenter, string goodId, int amount, int index)
