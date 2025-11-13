@@ -1,15 +1,17 @@
-﻿using Bindito.Core;
+﻿using System;
+using Bindito.Core;
 using JetBrains.Annotations;
+using Timberborn.Buildings;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.WorkSystem;
-using Timberborn.WorldPersistence;
 using UnityEngine;
 
 namespace EmploymentAutomation;
 
 public class EmploymentComponent : TickableComponent
 {
+    [CanBeNull] private PausableBuilding pausableBuilding;
     [CanBeNull] private Workplace workplace;
     [CanBeNull] private PowerComponent powerComponent;
     [CanBeNull] private ProductComponent productComponent;
@@ -25,6 +27,7 @@ public class EmploymentComponent : TickableComponent
 
     private void UpdateComponents()
     {
+        TryGetComponent(out pausableBuilding);
         TryGetComponent(out workplace);
         TryGetComponent(out powerComponent);
         TryGetComponent(out productComponent);
@@ -33,10 +36,13 @@ public class EmploymentComponent : TickableComponent
 
     public override void Tick()
     {
+        
         var ingredientsEnabled = ingredientComponent is { Available: true };
         var productEnabled = productComponent is { Available: true };
         var powerEnabled = powerComponent is { Available: true };
-        var hasToTick = workplace is not null && (ingredientsEnabled || productEnabled || powerEnabled)
+        var hasToTick = workplace is not null && pausableBuilding is not null &&
+                        (ingredientsEnabled || productEnabled || powerEnabled);
+        Console.WriteLine(hasToTick);
         if (!hasToTick) return;
 
         // employment trigger bounds
@@ -53,18 +59,27 @@ public class EmploymentComponent : TickableComponent
             DecreaseDesiredWorkers();
     }
 
+
     private void IncreaseDesiredWorkers()
     {
-        workplace.IncreaseDesiredWorkers();
+        if (pausableBuilding is null || workplace is null) return;
+        if (pausableBuilding.Paused)
+            pausableBuilding.Resume();
+        else
+            workplace.IncreaseDesiredWorkers();
     }
 
     private void DecreaseDesiredWorkers()
     {
-        workplace.DecreaseDesiredWorkers();
+        if (pausableBuilding is null || workplace is null) return;
+        if (workplace.DesiredWorkers <= 1)
+            pausableBuilding.Pause();
+        else
+            workplace.DecreaseDesiredWorkers();
     }
 
     private int GetCurrentDesiredWorkers()
     {
-        return workplace.DesiredWorkers;
+        return workplace?.DesiredWorkers ?? 0;
     }
 }
