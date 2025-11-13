@@ -13,8 +13,7 @@ namespace EmploymentAutomation
 {
     public class DistrictResourceCounterService : ITickableSingleton, IPostLoadableSingleton
     {
-        private readonly Dictionary<DistrictCenter, Dictionary<string, int[]>> stockCounter =
-            new Dictionary<DistrictCenter, Dictionary<string, int[]>>();
+        private readonly Dictionary<DistrictCenter, Dictionary<string, int[]>> stockCounter = new();
 
         private EventBus eventBus;
         //private InventoryService inventoryService;
@@ -31,7 +30,7 @@ namespace EmploymentAutomation
         }
 
         [Inject]
-        public void InjectDependencies(/*InventoryService inventoryService,*/ EventBus eventBus)
+        public void InjectDependencies( /*InventoryService inventoryService,*/ EventBus eventBus)
         {
             /*this.inventoryService = inventoryService;*/
             this.eventBus = eventBus;
@@ -89,7 +88,7 @@ namespace EmploymentAutomation
         private void UpdateResources()
         {
             ResetCounter();
-           /* foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);*/
+            /* foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);*/
         }
 
         private void ResetCounter()
