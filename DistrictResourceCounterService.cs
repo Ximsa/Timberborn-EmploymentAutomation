@@ -17,7 +17,7 @@ namespace EmploymentAutomation
             new Dictionary<DistrictCenter, Dictionary<string, int[]>>();
 
         private EventBus eventBus;
-        private InventoryService inventoryService;
+        //private InventoryService inventoryService;
 
         public void PostLoad()
         {
@@ -31,9 +31,9 @@ namespace EmploymentAutomation
         }
 
         [Inject]
-        public void InjectDependencies(InventoryService inventoryService, EventBus eventBus)
+        public void InjectDependencies(/*InventoryService inventoryService,*/ EventBus eventBus)
         {
-            this.inventoryService = inventoryService;
+            /*this.inventoryService = inventoryService;*/
             this.eventBus = eventBus;
         }
 
@@ -89,7 +89,7 @@ namespace EmploymentAutomation
         private void UpdateResources()
         {
             ResetCounter();
-            foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);
+           /* foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);*/
         }
 
         private void ResetCounter()
@@ -107,7 +107,7 @@ namespace EmploymentAutomation
         private void AddInventoryToCounter(Inventory inventory)
         {
             // Add district
-            var districtCenter = inventory.GetComponentFast<DistrictBuilding>().InstantDistrict;
+            var districtCenter = inventory.GetComponent<DistrictBuilding>().InstantDistrict;
             if (!districtCenter) return; // is inventory connected to a district?
             if (!stockCounter.ContainsKey(districtCenter))
                 stockCounter.Add(districtCenter, new Dictionary<string, int[]>());

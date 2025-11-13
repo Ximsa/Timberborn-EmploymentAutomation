@@ -5,7 +5,7 @@ namespace EmploymentAutomation
 {
     public class Plugin : IModStarter
     {
-        public void StartMod()
+        public void StartMod(IModEnvironment modEnvironment)
         {
             Console.WriteLine("Hello EmploymentAutomation!");
         }
