@@ -78,7 +78,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity
             Available = !AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
                 .Any(x => x.Namespace is "IgorZ.SmartPower.Core");
         }
-        catch (Exception _)
+        catch (Exception)
         {
             Available = false;
         }

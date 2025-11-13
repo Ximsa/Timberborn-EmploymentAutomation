@@ -73,7 +73,7 @@ public class IngredientComponent : TickableComponent, IPersistentEntity
             districtBuilding = GetComponent<DistrictBuilding>();
             Available = true;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Available = false;
         }
