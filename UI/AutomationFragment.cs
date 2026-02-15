@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Timberborn.BaseComponentSystem;
 using Timberborn.BlockSystem;
 using Timberborn.CoreUI;
@@ -11,7 +12,7 @@ namespace EmploymentAutomation;
 public class AutomationFragment(VisualElementInitializer initializer) : IEntityPanelFragment
 {
     private EntityPanelFragmentElement panel = null!;
-    private EmploymentComponent? curr;
+    private BlockObject? curr;
     private Label foo = null!;
 
     public VisualElement InitializeFragment()
@@ -25,7 +26,7 @@ public class AutomationFragment(VisualElementInitializer initializer) : IEntityP
 
     public void ShowFragment(BaseComponent entity)
     {
-        curr = entity.GetComponent<EmploymentComponent>();
+        curr = entity.GetComponent<BlockObject>();
         panel.Visible = curr is not null;
 
         UpdateFragment();

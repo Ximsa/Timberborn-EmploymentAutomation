@@ -9,7 +9,7 @@ using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using UnityEngine;
 
-namespace EmploymentAutomation
+namespace EmploymentAutomation.Logic
 {
     public class DistrictResourceCounterService : ITickableSingleton, IPostLoadableSingleton
     {
@@ -41,27 +41,11 @@ namespace EmploymentAutomation
         {
             UpdateResources();
         }
-        /*
-        [OnEvent]
-        public void OnSelectableObjectSelected(SelectableObjectSelectedEvent selectableObjectSelectedEvent)
-        {
-
-            SelectableObject o = selectableObjectSelectedEvent.SelectableObject;
-            if(o)
-            {
-                Console.WriteLine("\nComponents of Object:");
-                foreach (var component in o.AllComponents)
-                {
-                    Console.WriteLine(component.ToString());
-                }
-                Console.WriteLine("-------------");
-            }
-        }*/
 
         public float GetFillRate(DistrictCenter districtCenter, string goodId)
         {
             float result;
-            if (stockCounter.TryGetValue(districtCenter, out var districtStockCounter))
+            if (districtCenter && stockCounter.TryGetValue(districtCenter, out var districtStockCounter))
             {
                 if (districtStockCounter.TryGetValue(goodId, out var goodStats))
                 {

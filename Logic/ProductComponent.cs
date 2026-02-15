@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Bindito.Core;
 using Timberborn.GameDistricts;
+using Timberborn.InventorySystem;
 using Timberborn.Persistence;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
@@ -10,15 +11,17 @@ using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 using UnityEngine;
 
-namespace EmploymentAutomation;
+namespace EmploymentAutomation.Logic;
 
-public class ProductComponent : TickableComponent, IPersistentEntity
+public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymentBoundsProvider
 {
     private static readonly ComponentKey EmploymentManagerComponentKey = new("EmploymentManagerProductComponent");
 
     private static readonly PropertyKey<bool> OutStockActiveKey = new("OutStockActive");
     private static readonly PropertyKey<float> OutStockHighKey = new("OutStockHigh");
     private static readonly PropertyKey<float> OutStockLowKey = new("OutStockLow");
+
+    private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
     public bool OutStockActive { get; private set; }
@@ -28,7 +31,7 @@ public class ProductComponent : TickableComponent, IPersistentEntity
     public Vector2Int EmploymentBounds { get; private set; } = new();
 
     private DistrictBuilding districtBuilding;
-    private DistrictResourceCounterService districtResourceCounterService;
+    private DistrictInventoryRegistry districtInventoryRegistry;
     private Manufactory manufactory;
     private Workplace workplace;
 
@@ -57,10 +60,10 @@ public class ProductComponent : TickableComponent, IPersistentEntity
 
     [Inject]
     public void InjectDependencies(
-        DistrictResourceCounterService districtResourceCounterService, EventBus eventBus)
+        DistrictInventoryRegistry districtInventoryRegistry, EventBus eventBus)
     {
         eventBus.Register(this);
-        this.districtResourceCounterService = districtResourceCounterService;
+        this.districtInventoryRegistry = districtInventoryRegistry;
         UpdateComponents();
     }
 
@@ -71,6 +74,7 @@ public class ProductComponent : TickableComponent, IPersistentEntity
             workplace = GetComponent<Workplace>();
             manufactory = GetComponent<Manufactory>();
             districtBuilding = GetComponent<DistrictBuilding>();
+
             Available = true;
         }
         catch (Exception)
@@ -81,6 +85,12 @@ public class ProductComponent : TickableComponent, IPersistentEntity
 
     public override void Tick()
     {
+        if (componentsAreDirty)
+        {
+            UpdateComponents();
+            componentsAreDirty = false;
+        }
+
         if (!Available || !manufactory.HasCurrentRecipe || !manufactory.CurrentRecipe.ProducesProducts) return;
 
         // obtain fillrate of output
@@ -96,6 +106,8 @@ public class ProductComponent : TickableComponent, IPersistentEntity
         // employment trigger bounds
         EmploymentBounds = GetEmploymentBoundsProduct(productFillrate);
     }
+
+    private float GetFillRate()
 
     private Vector2Int GetEmploymentBoundsProduct(float fillrate)
     {

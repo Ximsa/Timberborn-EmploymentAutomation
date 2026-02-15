@@ -1,55 +1,61 @@
 ﻿using System;
 using Bindito.Core;
 using JetBrains.Annotations;
-using Timberborn.Buildings;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.WorkSystem;
 using UnityEngine;
 
-namespace EmploymentAutomation;
+namespace EmploymentAutomation.Logic;
 
 public class EmploymentComponent : TickableComponent
 {
-    [CanBeNull] private PausableBuilding pausableBuilding;
     [CanBeNull] private Workplace workplace;
     [CanBeNull] private PowerComponent powerComponent;
     [CanBeNull] private ProductComponent productComponent;
     [CanBeNull] private IngredientComponent ingredientComponent;
+    private bool componentsAreDirty = true;
 
     [Inject]
     public void InjectDependencies(
         EventBus eventBus)
     {
         eventBus.Register(this);
-        UpdateComponents();
     }
 
     private void UpdateComponents()
     {
-        TryGetComponent(out pausableBuilding);
-        TryGetComponent(out workplace);
-        TryGetComponent(out powerComponent);
-        TryGetComponent(out productComponent);
-        TryGetComponent(out ingredientComponent);
+        workplace = HasComponent<Workplace>() ? GetComponent<Workplace>() : null;
+        powerComponent = HasComponent<PowerComponent>() ? GetComponent<PowerComponent>() : null;
+        productComponent = HasComponent<ProductComponent>() ? GetComponent<ProductComponent>() : null;
+        ingredientComponent = HasComponent<IngredientComponent>() ? GetComponent<IngredientComponent>() : null;
     }
 
     public override void Tick()
     {
-        
+        if (componentsAreDirty)
+        {
+            UpdateComponents();
+            componentsAreDirty = false;
+        }
+
         var ingredientsEnabled = ingredientComponent is { Available: true };
         var productEnabled = productComponent is { Available: true };
         var powerEnabled = powerComponent is { Available: true };
-        var hasToTick = workplace is not null && pausableBuilding is not null &&
-                        (ingredientsEnabled || productEnabled || powerEnabled);
+
+        var hasToTick = workplace is not null && (ingredientsEnabled || productEnabled || powerEnabled);
         Console.WriteLine(hasToTick);
         if (!hasToTick) return;
-
+        Console.WriteLine(05);
         // employment trigger bounds
         var bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
+        Console.WriteLine(06);
         if (powerEnabled) bounds = Vector2Int.Min(bounds, powerComponent.EmploymentBounds);
+        Console.WriteLine(07);
         if (productEnabled) bounds = Vector2Int.Min(bounds, productComponent.EmploymentBounds);
+        Console.WriteLine(08);
         if (ingredientsEnabled) bounds = Vector2Int.Min(bounds, ingredientComponent.EmploymentBounds);
+        Console.WriteLine(09);
 
         // perform employment
         var currentDesiredWorkers = GetCurrentDesiredWorkers();
@@ -60,26 +66,9 @@ public class EmploymentComponent : TickableComponent
     }
 
 
-    private void IncreaseDesiredWorkers()
-    {
-        if (pausableBuilding is null || workplace is null) return;
-        if (pausableBuilding.Paused)
-            pausableBuilding.Resume();
-        else
-            workplace.IncreaseDesiredWorkers();
-    }
+    private void IncreaseDesiredWorkers() => workplace?.IncreaseDesiredWorkers();
 
-    private void DecreaseDesiredWorkers()
-    {
-        if (pausableBuilding is null || workplace is null) return;
-        if (workplace.DesiredWorkers <= 1)
-            pausableBuilding.Pause();
-        else
-            workplace.DecreaseDesiredWorkers();
-    }
+    private void DecreaseDesiredWorkers() => workplace?.DecreaseDesiredWorkers();
 
-    private int GetCurrentDesiredWorkers()
-    {
-        return workplace?.DesiredWorkers ?? 0;
-    }
+    private int GetCurrentDesiredWorkers() => workplace?.DesiredWorkers ?? 0;
 }

@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Bindito.Core;
-using Timberborn.GameDistricts;
 using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
 using Timberborn.SingletonSystem;
@@ -12,9 +10,9 @@ using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 using UnityEngine;
 
-namespace EmploymentAutomation;
+namespace EmploymentAutomation.Logic;
 
-public class PowerComponent : TickableComponent, IPersistentEntity
+public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentBoundsProvider
 {
     private static readonly ComponentKey EmploymentManagerComponentKey =
         new("EmploymentManagerPowerComponent");
@@ -22,6 +20,8 @@ public class PowerComponent : TickableComponent, IPersistentEntity
     private static readonly PropertyKey<bool> PowerActiveKey = new("PowerActive");
     private static readonly PropertyKey<float> PowerHighKey = new("PowerHigh");
     private static readonly PropertyKey<float> PowerLowKey = new("PowerLow");
+    
+    private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
     public bool PowerActive { get; private set; }
@@ -74,7 +74,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity
             manufactory = GetComponent<Manufactory>();
             mechanicalNode = GetComponent<MechanicalNode>();
             mechanicalNodeSpecification = GetComponent<MechanicalNodeSpec>();
-            // Don't perform power management when an other mod adds power automation
+            // Don't perform power management when another mod adds power automation
             Available = !AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
                 .Any(x => x.Namespace is "IgorZ.SmartPower.Core");
         }
@@ -86,7 +86,13 @@ public class PowerComponent : TickableComponent, IPersistentEntity
 
     public override void Tick()
     {
-        if (!Available || !manufactory.HasCurrentRecipe) return;
+        if (componentsAreDirty)
+        {
+            UpdateComponents();
+            componentsAreDirty = false;
+        }
+        
+        /*if (!Available || !manufactory.HasCurrentRecipe) return;
         float powerMeter;
 
         var batteries = mechanicalNode.Graph!.BatteryControllers
@@ -95,7 +101,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity
         if (batteries.IsEmpty)
         {
             // need to recalculate efficiency to account for own activation
-            var currentPower = mechanicalNode.Graph!.CurrentPower;
+            var currentPower = mechanicalNode.Graph!.Batteries.First();
             powerMeter = Mathf.Min(
                 (currentPower.PowerSupply + currentPower.BatteryPower) /
                 (currentPower.PowerDemand + (GetCurrentDesiredWorkers() == 0
@@ -111,7 +117,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity
         }
 
         // employment trigger bounds
-        EmploymentBounds = GetEmploymentBoundsPower(powerMeter);
+        EmploymentBounds = GetEmploymentBoundsPower(powerMeter);*/
     }
 
     private int GetCurrentDesiredWorkers()

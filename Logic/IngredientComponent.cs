@@ -10,15 +10,17 @@ using Timberborn.WorkSystem;
 using Timberborn.WorldPersistence;
 using UnityEngine;
 
-namespace EmploymentAutomation;
+namespace EmploymentAutomation.Logic;
 
-public class IngredientComponent : TickableComponent, IPersistentEntity
+public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploymentBoundsProvider
 {
     private static readonly ComponentKey EmploymentManagerComponentKey = new("EmploymentManagerIngredientComponent");
 
     private static readonly PropertyKey<bool> InStockActiveKey = new("InStockActive");
     private static readonly PropertyKey<float> InStockHighKey = new("InStockHigh");
     private static readonly PropertyKey<float> InStockLowKey = new("InStockLow");
+
+    private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
     public bool InStockActive { get; private set; }
@@ -81,6 +83,12 @@ public class IngredientComponent : TickableComponent, IPersistentEntity
 
     public override void Tick()
     {
+        if (componentsAreDirty)
+        {
+            UpdateComponents();
+            componentsAreDirty = false;
+        }
+
         if (!Available || !manufactory.HasCurrentRecipe || !manufactory.CurrentRecipe.ConsumesIngredients) return;
 
         var ingredients = manufactory.CurrentRecipe.Ingredients;

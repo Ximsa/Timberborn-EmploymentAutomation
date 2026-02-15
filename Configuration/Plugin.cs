@@ -1,7 +1,7 @@
 ﻿using System;
 using Timberborn.ModManagerScene;
 
-namespace EmploymentAutomation
+namespace EmploymentAutomation.Configuration
 {
     public class Plugin : IModStarter
     {
