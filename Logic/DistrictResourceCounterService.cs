@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Bindito.Core;
+using Timberborn.BaseComponentSystem;
 using Timberborn.Common;
+using Timberborn.EntitySystem;
 using Timberborn.GameDistricts;
 using Timberborn.Goods;
 using Timberborn.InventorySystem;
@@ -16,7 +19,7 @@ namespace EmploymentAutomation.Logic
         private readonly Dictionary<DistrictCenter, Dictionary<string, int[]>> stockCounter = new();
 
         private EventBus eventBus;
-        //private InventoryService inventoryService;
+        private DistrictCenterRegistry districtCenterRegistry;
 
         public void PostLoad()
         {
@@ -26,13 +29,14 @@ namespace EmploymentAutomation.Logic
 
         public void Tick()
         {
+            Console.WriteLine("Tick");
             UpdateResources();
         }
 
         [Inject]
-        public void InjectDependencies( /*InventoryService inventoryService,*/ EventBus eventBus)
+        public void InjectDependencies(DistrictCenterRegistry districtCenterRegistry, EventBus eventBus)
         {
-            /*this.inventoryService = inventoryService;*/
+            this.districtCenterRegistry = districtCenterRegistry;
             this.eventBus = eventBus;
         }
 
@@ -72,26 +76,50 @@ namespace EmploymentAutomation.Logic
         private void UpdateResources()
         {
             ResetCounter();
-            /* foreach (var inventory in inventoryService.PublicOutputInventories) AddInventoryToCounter(inventory);*/
+            var districtCenters = districtCenterRegistry.FinishedDistrictCenters;
+            foreach (var districtCenter in districtCenters)
+            {
+                var districtInventoryRegistry = districtCenter.GetComponent<DistrictInventoryRegistry>();
+                if (!districtInventoryRegistry)
+                {
+                    Console.WriteLine("DistrictInventoryRegistry for" + districtCenter + "not found");
+                }
+
+                foreach (var inventory in districtInventoryRegistry.Inventories)
+                {
+                    if (inventory.IsUnblocked && inventory.Enabled)
+                    {
+                        AddInventoryToCounter(inventory);
+                    }
+                }
+            }
         }
 
         private void ResetCounter()
         {
-            /*Console.WriteLine("Resouce Counter:");*/
+            Console.WriteLine("Resouce Counter:");
             foreach (var counts in stockCounter.Values.SelectMany(goods => goods.Values))
             {
-                /*Console.WriteLine(new Tuple<int, int>(counts[0], counts[1]));*/
+                Console.WriteLine(new Tuple<int, int>(counts[0], counts[1]));
                 counts[0] = 0;
                 counts[1] = 0;
             }
-            /*Console.WriteLine("----------------------------------");*/
+
+            Console.WriteLine("----------------------------------");
         }
 
         private void AddInventoryToCounter(Inventory inventory)
         {
             // Add district
             var districtCenter = inventory.GetComponent<DistrictBuilding>().InstantDistrict;
-            if (!districtCenter) return; // is inventory connected to a district?
+            if (!districtCenter)
+            {
+                Console.WriteLine("District Building for" + inventory + "not found");
+                Console.WriteLine(inventory.AllComponents);
+                Console.WriteLine("--------------------------");
+                return;
+            }
+
             if (!stockCounter.ContainsKey(districtCenter))
                 stockCounter.Add(districtCenter, new Dictionary<string, int[]>());
 

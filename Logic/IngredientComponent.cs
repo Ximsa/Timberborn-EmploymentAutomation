@@ -23,9 +23,11 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
     private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
-    public bool InStockActive { get; private set; }
-    public float InStockHigh { get; set; } = 0.95f;
-    public float InStockLow { get; set; } = 0.75f;
+    public bool InStockActive { get; set; } = true;
+    public float InStockHigh { get; set; } = 0.50f;
+    public float InStockLow { get; set; } = 0.10f;
+
+    public float Fillrate { get; private set; } = 0f;
 
     public Vector2Int EmploymentBounds { get; private set; } = new();
 
@@ -70,9 +72,9 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
     {
         try
         {
-            workplace = GetComponent<Workplace>();
-            manufactory = GetComponent<Manufactory>();
-            districtBuilding = GetComponent<DistrictBuilding>();
+            workplace = GetComponent<Workplace>()!;
+            manufactory = GetComponent<Manufactory>()!;
+            districtBuilding = GetComponent<DistrictBuilding>()!;
             Available = true;
         }
         catch (Exception)
@@ -89,10 +91,11 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
             componentsAreDirty = false;
         }
 
-        if (!Available || !manufactory.HasCurrentRecipe || !manufactory.CurrentRecipe.ConsumesIngredients) return;
+        if (!InStockActive || !Available || !manufactory.HasCurrentRecipe ||
+            !manufactory.CurrentRecipe.ConsumesIngredients) return;
 
         var ingredients = manufactory.CurrentRecipe.Ingredients;
-        var ingredientFillrate = Enumerable.Aggregate(
+        Fillrate = Enumerable.Aggregate(
             ingredients,
             1.0f,
             (current, ingredient) => Mathf.Min(
@@ -100,7 +103,7 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
                 districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, ingredient.Id)));
 
         // employment trigger bounds
-        EmploymentBounds = GetEmploymentBoundsIngredient(ingredientFillrate);
+        EmploymentBounds = GetEmploymentBoundsIngredient(Fillrate);
     }
 
     private Vector2Int GetEmploymentBoundsIngredient(float fillrate)

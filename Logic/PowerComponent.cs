@@ -20,11 +20,11 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
     private static readonly PropertyKey<bool> PowerActiveKey = new("PowerActive");
     private static readonly PropertyKey<float> PowerHighKey = new("PowerHigh");
     private static readonly PropertyKey<float> PowerLowKey = new("PowerLow");
-    
+
     private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
-    public bool PowerActive { get; private set; }
+    public bool PowerActive { get; set; } = false;
     public float PowerHigh { get; set; } = 0.75f;
     public float PowerLow { get; set; } = 0.25f;
 
@@ -70,10 +70,10 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
     {
         try
         {
-            workplace = GetComponent<Workplace>();
-            manufactory = GetComponent<Manufactory>();
-            mechanicalNode = GetComponent<MechanicalNode>();
-            mechanicalNodeSpecification = GetComponent<MechanicalNodeSpec>();
+            workplace = GetComponent<Workplace>()!;
+            manufactory = GetComponent<Manufactory>()!;
+            mechanicalNode = GetComponent<MechanicalNode>()!;
+            mechanicalNodeSpecification = GetComponent<MechanicalNodeSpec>()!;
             // Don't perform power management when another mod adds power automation
             Available = !AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
                 .Any(x => x.Namespace is "IgorZ.SmartPower.Core");
@@ -91,7 +91,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
             UpdateComponents();
             componentsAreDirty = false;
         }
-        
+
         /*if (!Available || !manufactory.HasCurrentRecipe) return;
         float powerMeter;
 
@@ -115,9 +115,9 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
             powerMeter = batteries.Select(x => x.Charge).Sum() /
                          batteries.Select(x => x.Capacity).Sum();
         }
-
+        */
         // employment trigger bounds
-        EmploymentBounds = GetEmploymentBoundsPower(powerMeter);*/
+        EmploymentBounds = GetEmploymentBoundsPower( /*powerMeter*/1.0f);
     }
 
     private int GetCurrentDesiredWorkers()

@@ -16,14 +16,18 @@ internal class WorkplacePatch
     [HarmonyTranspiler]
     [UsedImplicitly]
     private static IEnumerable<CodeInstruction> DecreaseDesiredWorkersTranspiler(
-        IEnumerable<CodeInstruction> instructions) =>
-        instructions.Select(x =>
+        IEnumerable<CodeInstruction> instructions)
+    {
+        var enumeratedInstructions = instructions as CodeInstruction[] ?? instructions.ToArray();
+        foreach (var instruction in enumeratedInstructions)
         {
-            if (x.opcode == OpCodes.Ldc_I4_1)
+            if (instruction.opcode == OpCodes.Ldc_I4_1)
             {
-                x.opcode = OpCodes.Ldc_I4_0;
+                instruction.opcode = OpCodes.Ldc_I4_0;
+                break;
             }
+        }
 
-            return x;
-        });
+        return enumeratedInstructions;
+    }
 }

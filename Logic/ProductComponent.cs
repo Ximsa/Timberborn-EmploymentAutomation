@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Bindito.Core;
 using Timberborn.GameDistricts;
+using Timberborn.Goods;
 using Timberborn.InventorySystem;
 using Timberborn.Persistence;
 using Timberborn.SingletonSystem;
@@ -24,16 +25,16 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
     private bool componentsAreDirty = true;
 
     public bool Available { get; private set; }
-    public bool OutStockActive { get; private set; }
-    public float OutStockHigh { get; set; } = 0.95f;
-    public float OutStockLow { get; set; } = 0.75f;
+    public bool OutStockActive { get; set; } = false;
+    public float OutStockHigh { get; set; } = 0.90f;
+    public float OutStockLow { get; set; } = 0.50f;
 
     public Vector2Int EmploymentBounds { get; private set; } = new();
 
-    private DistrictBuilding districtBuilding;
-    private DistrictInventoryRegistry districtInventoryRegistry;
     private Manufactory manufactory;
     private Workplace workplace;
+    private DistrictBuilding districtBuilding;
+    private DistrictResourceCounterService districtResourceCounterService;
 
     public void Save(IEntitySaver entitySaver)
     {
@@ -59,22 +60,19 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
     }
 
     [Inject]
-    public void InjectDependencies(
-        DistrictInventoryRegistry districtInventoryRegistry, EventBus eventBus)
+    public void InjectDependencies(EventBus eventBus, DistrictResourceCounterService districtResourceCounterService)
     {
         eventBus.Register(this);
-        this.districtInventoryRegistry = districtInventoryRegistry;
-        UpdateComponents();
+        this.districtResourceCounterService = districtResourceCounterService;
     }
 
     private void UpdateComponents()
     {
         try
         {
-            workplace = GetComponent<Workplace>();
-            manufactory = GetComponent<Manufactory>();
-            districtBuilding = GetComponent<DistrictBuilding>();
-
+            workplace = GetComponent<Workplace>()!;
+            manufactory = GetComponent<Manufactory>()!;
+            districtBuilding = GetComponent<DistrictBuilding>()!;
             Available = true;
         }
         catch (Exception)
@@ -91,10 +89,12 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
             componentsAreDirty = false;
         }
 
-        if (!Available || !manufactory.HasCurrentRecipe || !manufactory.CurrentRecipe.ProducesProducts) return;
+        if (!OutStockActive || !Available || !manufactory.HasCurrentRecipe ||
+            !manufactory.CurrentRecipe.ProducesProducts) return;
 
         // obtain fillrate of output
         var products = manufactory.CurrentRecipe.Products;
+
         var productFillrate = Enumerable.Aggregate(
             products,
             1.0f,
@@ -102,12 +102,9 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
                 Mathf.Min(
                     current,
                     districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.Id)));
-
         // employment trigger bounds
         EmploymentBounds = GetEmploymentBoundsProduct(productFillrate);
     }
-
-    private float GetFillRate()
 
     private Vector2Int GetEmploymentBoundsProduct(float fillrate)
     {

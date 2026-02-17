@@ -1,5 +1,6 @@
 ﻿using Bindito.Core;
 using EmploymentAutomation.Logic;
+using EmploymentAutomation.UI;
 using Timberborn.TemplateInstantiation;
 using Timberborn.Workshops;
 using TimberUi.CommonProviders;
@@ -9,15 +10,20 @@ namespace EmploymentAutomation.Configuration;
 [Context("Game")]
 public class GameConfigurator : Configurator
 {
-    public class FragmentsProvider(AutomationFragment fragment) : EntityPanelFragmentProvider([fragment]);
+    public class FragmentsProvider(
+        IngredientAutomationFragment ingredientAutomationFragment,
+        ProductAutomationFragment productAutomationFragment,
+        PowerAutomationFragment powerAutomationFragment) : EntityPanelFragmentProvider([
+        ingredientAutomationFragment, productAutomationFragment, powerAutomationFragment
+    ]);
 
     protected override void Configure()
     {
         Bind<DistrictResourceCounterService>().AsSingleton();
-        Bind<EmploymentComponent>().AsSingleton();
-        Bind<PowerComponent>().AsSingleton();
-        Bind<IngredientComponent>().AsSingleton();
-        Bind<ProductComponent>().AsSingleton();
+        Bind<EmploymentComponent>().AsTransient();
+        Bind<PowerComponent>().AsTransient();
+        Bind<IngredientComponent>().AsTransient();
+        Bind<ProductComponent>().AsTransient();
         MultiBind<TemplateModule>().ToProvider(ProvideTemplateModule).AsSingleton();
         this.BindFragments<FragmentsProvider>();
     }
