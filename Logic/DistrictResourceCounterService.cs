@@ -25,11 +25,7 @@ namespace EmploymentAutomation.Logic
             UpdateResources();
         }
 
-        public void Tick()
-        {
-            Console.WriteLine("Tick");
-            UpdateResources();
-        }
+        public void Tick() => UpdateResources();
 
         [Inject]
         public void InjectDependencies(DistrictCenterRegistry districtCenterRegistry, EventBus eventBus)
@@ -39,10 +35,7 @@ namespace EmploymentAutomation.Logic
         }
 
         [OnEvent]
-        public void OnNewGameInitialized(NewGameInitializedEvent newGameInitializedEvent)
-        {
-            UpdateResources();
-        }
+        public void OnNewGameInitialized(NewGameInitializedEvent newGameInitializedEvent) => UpdateResources();
 
         public float GetFillRate(DistrictCenter districtCenter, string goodId)
         {

@@ -35,7 +35,7 @@ public class PowerAutomationFragment(
         UpdateValues(component);
     }
 
-    private void UpdateValues(PowerComponent component)
+    private void UpdateValues(IEmploymentBoundsProvider component)
     {
         panel.ToggleDisplayStyle(component.Available);
         toggle.ToggleDisplayStyle(component.Available);
@@ -43,6 +43,18 @@ public class PowerAutomationFragment(
         toggle.text = ToggleText(component.Fillrate);
         toggle.value = component.Active;
         slider.value = new Vector2(component.Low*100f, component.High*100f);
+    }
+    
+    public override void UpdateFragment()
+    {
+        base.UpdateFragment();
+        if (component == null) return;
+        UpdateReadonlyValues(component);
+    }
+
+    private void UpdateReadonlyValues(IEmploymentBoundsProvider component)
+    {
+        toggle.text = ToggleText(component.Fillrate);
     }
 
     private string ToggleText(float fillrate) =>

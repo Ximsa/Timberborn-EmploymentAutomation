@@ -37,7 +37,19 @@ public class IngredientAutomationFragment(
         UpdateValues(component);
     }
 
-    private void UpdateValues(IngredientComponent component)
+    public override void UpdateFragment()
+    {
+        base.UpdateFragment();
+        if (component == null) return;
+        UpdateReadonlyValues(component);
+    }
+
+    private void UpdateReadonlyValues(IEmploymentBoundsProvider component)
+    {
+        toggle.text = ToggleText(component.Fillrate);
+    }
+
+    private void UpdateValues(IEmploymentBoundsProvider component)
     {
         panel.ToggleDisplayStyle(component.Available);
         toggle.ToggleDisplayStyle(component.Available);
