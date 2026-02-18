@@ -97,15 +97,12 @@ namespace EmploymentAutomation.Logic
 
         private void ResetCounter()
         {
-            Console.WriteLine("Resouce Counter:");
             foreach (var counts in stockCounter.Values.SelectMany(goods => goods.Values))
             {
                 Console.WriteLine(new Tuple<int, int>(counts[0], counts[1]));
                 counts[0] = 0;
                 counts[1] = 0;
             }
-
-            Console.WriteLine("----------------------------------");
         }
 
         private void AddInventoryToCounter(Inventory inventory)
@@ -114,9 +111,6 @@ namespace EmploymentAutomation.Logic
             var districtCenter = inventory.GetComponent<DistrictBuilding>().InstantDistrict;
             if (!districtCenter)
             {
-                Console.WriteLine("District Building for" + inventory + "not found");
-                Console.WriteLine(inventory.AllComponents);
-                Console.WriteLine("--------------------------");
                 return;
             }
 

@@ -1,5 +1,4 @@
 using System;
-using TimberUi.CommonUi;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,19 +6,6 @@ namespace EmploymentAutomation.UI;
 
 public static class VisualElementExtensions
 {
-    public static GameSliderInt AddSlider(
-        this VisualElement element,
-        int min,
-        int max,
-        string key,
-        Action<int> onChange)
-    {
-        var slider = element.AddSliderInt(key, values: new SliderValues<int>(min, max, 0));
-        slider.RegisterChange(onChange);
-        return slider;
-    }
-
-
     public static MinMaxSlider AddIntMinMaxSliderWithValueDisplay(
         this VisualElement element,
         string label,

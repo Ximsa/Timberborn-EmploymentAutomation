@@ -1,5 +1,4 @@
 ﻿using System;
-using HarmonyLib;
 using Timberborn.ModManagerScene;
 
 namespace EmploymentAutomation.Configuration
@@ -10,7 +9,6 @@ namespace EmploymentAutomation.Configuration
         {
             const string modName = "Employment Automation";
             Console.WriteLine("Hello " + modName + "!");
-            new Harmony(modName).PatchAll();
         }
     }
 }

@@ -10,7 +10,7 @@ namespace EmploymentAutomation.Configuration;
 [Context("Game")]
 public class GameConfigurator : Configurator
 {
-    public class FragmentsProvider(
+    private class FragmentsProvider(
         IngredientAutomationFragment ingredientAutomationFragment,
         ProductAutomationFragment productAutomationFragment,
         PowerAutomationFragment powerAutomationFragment) : EntityPanelFragmentProvider([

@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using EmploymentAutomation.Logic;
 using Timberborn.BaseComponentSystem;
 using Timberborn.CoreUI;
-using Timberborn.EntityPanelSystem;
 using Timberborn.Localization;
-using Timberborn.Workshops;
 using TimberUi.CommonUi;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,7 +18,7 @@ public class PowerAutomationFragment(
 
     protected override void InitializePanel()
     {
-        toggle = panel.AddToggle(text: "Enable Power", onValueChanged: OnToggle);
+        toggle = panel.AddToggle(text: loc.T("Ximsa.EmploymentAutomation.PowerToggle"), onValueChanged: OnToggle);
         slider = panel.AddIntMinMaxSliderWithValueDisplay(
             label: "",
             value: new Vector2Int(10, 50),
@@ -33,47 +30,36 @@ public class PowerAutomationFragment(
 
     public override void ShowFragment(BaseComponent entity)
     {
-        Console.WriteLine("-----");
-        Console.WriteLine("ShowFragment");
         base.ShowFragment(entity);
         if (component == null) return;
-        Console.WriteLine("ShowFragment");
-        Update(component);
+        UpdateValues(component);
     }
 
-    public override void UpdateFragment()
+    private void UpdateValues(PowerComponent component)
     {
-        Console.WriteLine("-----");
-        Console.WriteLine("UpdateFragment");
-        if (component == null) return;
-        Console.WriteLine("UpdateFragment");
-        Update(component);
-    }
-
-    private void Update(PowerComponent component)
-    {
+        panel.ToggleDisplayStyle(component.Available);
         toggle.ToggleDisplayStyle(component.Available);
         slider.ToggleDisplayStyle(component.Available);
-        toggle.text = ToggleText(0);
-        toggle.value = component.PowerActive;
-        slider.value = new Vector2(component.PowerLow, component.PowerHigh);
+        toggle.text = ToggleText(component.Fillrate);
+        toggle.value = component.Active;
+        slider.value = new Vector2(component.Low*100f, component.High*100f);
     }
 
-    private static string ToggleText(float fillrate) =>
-        "Enable Ingredients. Fillrate:" + (int)Math.Round(fillrate) + "%";
+    private string ToggleText(float fillrate) =>
+        loc.T("Ximsa.EmploymentAutomation.PowerToggle") + (int)Math.Round(fillrate*100) + "%";
 
     private void OnIngredientSliderChanged(Vector2Int value)
     {
         if (component == null)
             return;
-        component.PowerLow = value.x / 100f;
-        component.PowerHigh = value.y / 100f;
+        component.Low = value.x / 100f;
+        component.High = value.y / 100f;
     }
 
     private void OnToggle(bool toggleState)
     {
         if (component == null)
             return;
-        component.PowerActive = toggleState;
+        component.Active = toggleState;
     }
 }

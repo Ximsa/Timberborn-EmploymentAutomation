@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using EmploymentAutomation.Logic;
 using Timberborn.BaseComponentSystem;
 using Timberborn.CoreUI;
-using Timberborn.EntityPanelSystem;
 using Timberborn.Localization;
-using Timberborn.Workshops;
 using TimberUi.CommonUi;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -22,7 +19,7 @@ public class IngredientAutomationFragment(
     protected override void InitializePanel()
     {
         toggle = panel.AddToggle(
-            text: ToggleText(0),
+            text: loc.T("Ximsa.EmploymentAutomation.IngredientToggle"),
             onValueChanged: OnToggle);
         slider = panel.AddIntMinMaxSliderWithValueDisplay(
             label: "",
@@ -35,47 +32,38 @@ public class IngredientAutomationFragment(
 
     public override void ShowFragment(BaseComponent entity)
     {
-        Console.WriteLine("-----");
-        Console.WriteLine("ShowFragment");
         base.ShowFragment(entity);
         if (component == null) return;
-        Console.WriteLine("ShowFragment");
-        Update(component);
+        UpdateValues(component);
     }
 
-    public override void UpdateFragment()
+    private void UpdateValues(IngredientComponent component)
     {
-        Console.WriteLine("-----");
-        Console.WriteLine("UpdateFragment");
-        if (component == null) return;
-        Console.WriteLine("UpdateFragment");
-        Update(component);
-    }
-
-    private void Update(IngredientComponent component)
-    {
+        panel.ToggleDisplayStyle(component.Available);
         toggle.ToggleDisplayStyle(component.Available);
         slider.ToggleDisplayStyle(component.Available);
         toggle.text = ToggleText(component.Fillrate);
-        toggle.value = component.InStockActive;
-        slider.value = new Vector2(component.InStockLow, component.InStockHigh);
+        toggle.value = component.Active;
+        slider.value = new Vector2(component.Low * 100f, component.High * 100f);
     }
 
-    private static string ToggleText(float fillrate) =>
-        "Enable Ingredients. Fillrate:" + (int)Math.Round(fillrate) + "%";
+    private string ToggleText(float fillrate) =>
+        loc.T("Ximsa.EmploymentAutomation.IngredientToggle") + (int)Math.Round(fillrate * 100) + "%";
 
     private void OnIngredientSliderChanged(Vector2Int value)
     {
+        Console.WriteLine("OnIngredientSliderChanged");
         if (component == null)
             return;
-        component.InStockLow = value.x / 100f;
-        component.InStockHigh = value.y / 100f;
+        component.Low = value.x / 100f;
+        component.High = value.y / 100f;
+        Console.WriteLine(component.High + "\t" + component.Low);
     }
 
     private void OnToggle(bool toggleState)
     {
         if (component == null)
             return;
-        component.InStockActive = toggleState;
+        component.Active = toggleState;
     }
 }
