@@ -92,14 +92,9 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
             new Vector2(battery.NominalBatteryCharge, battery.NominalBatteryCapacity));
         var networkCapacity = capacities.Aggregate(Vector2.zero, (x, y) => x + y);
         if (networkCapacity.y == 0)
-        {
             Fillrate = mechanicalNode?.Graph?.PowerEfficiency ?? 0f;
-        }
         else
-        {
             Fillrate = networkCapacity.x / networkCapacity.y;
-        }
-
         EmploymentBounds = GetEmploymentBoundsPower(Fillrate);
     }
 

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Bindito.Core;
-using Timberborn.BaseComponentSystem;
 using Timberborn.Common;
-using Timberborn.EntitySystem;
 using Timberborn.GameDistricts;
 using Timberborn.Goods;
 using Timberborn.InventorySystem;
@@ -80,11 +78,6 @@ namespace EmploymentAutomation.Logic
             foreach (var districtCenter in districtCenters)
             {
                 var districtInventoryRegistry = districtCenter.GetComponent<DistrictInventoryRegistry>();
-                if (!districtInventoryRegistry)
-                {
-                    Console.WriteLine("DistrictInventoryRegistry for" + districtCenter + "not found");
-                }
-
                 foreach (var inventory in districtInventoryRegistry.Inventories)
                 {
                     if (inventory.IsUnblocked && inventory.Enabled)
@@ -99,7 +92,6 @@ namespace EmploymentAutomation.Logic
         {
             foreach (var counts in stockCounter.Values.SelectMany(goods => goods.Values))
             {
-                Console.WriteLine(new Tuple<int, int>(counts[0], counts[1]));
                 counts[0] = 0;
                 counts[1] = 0;
             }

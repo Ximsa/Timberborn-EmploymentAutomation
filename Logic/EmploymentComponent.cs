@@ -1,5 +1,4 @@
-﻿using System;
-using Bindito.Core;
+﻿using Bindito.Core;
 using Timberborn.Buildings;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
@@ -43,22 +42,13 @@ public class EmploymentComponent : TickableComponent
                         (ingredientsEnabled || productEnabled || powerEnabled);
         if (!hasToTick) return;
         // employment trigger bounds
-        var print = workplace.Name.ToLower().Contains("water");
-        if (print) Console.WriteLine("----");
-        if (print) Console.WriteLine(workplace.Name);
         var bounds = new Vector2Int(workplace.MaxWorkers, workplace.MaxWorkers);
-        if (print) Console.WriteLine(bounds);
         if (powerEnabled) bounds = Vector2Int.Min(bounds, powerComponent.EmploymentBounds);
-        if (print) Console.WriteLine(bounds);
         if (ingredientsEnabled) bounds = Vector2Int.Min(bounds, ingredientComponent.EmploymentBounds);
-        if (print) Console.WriteLine(bounds);
         if (productEnabled) bounds = Vector2Int.Min(bounds, productComponent.EmploymentBounds);
-        if (print) Console.WriteLine(bounds);
 
         // perform employment
-
         var currentDesiredWorkers = GetDesiredWorkers();
-        if (print) Console.WriteLine(currentDesiredWorkers);
         if (currentDesiredWorkers < bounds.x)
             IncreaseDesiredWorkers();
         else if (currentDesiredWorkers > bounds.y)
