@@ -12,8 +12,5 @@
         <Reference Include="TimberUi">
             <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberui\version-1.0\TimberUi.dll</HintPath>
         </Reference>
-        <Reference Include="Harmony">
-            <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\harmony\0Harmony.dll</HintPath>
-        </Reference>
     </ItemGroup>
 </Project>

@@ -64,12 +64,10 @@ public class IngredientAutomationFragment(
 
     private void OnIngredientSliderChanged(Vector2Int value)
     {
-        Console.WriteLine("OnIngredientSliderChanged");
         if (component == null)
             return;
         component.Low = value.x / 100f;
         component.High = value.y / 100f;
-        Console.WriteLine(component.High + "\t" + component.Low);
     }
 
     private void OnToggle(bool toggleState)
