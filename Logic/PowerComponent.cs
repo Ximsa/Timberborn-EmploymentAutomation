@@ -85,7 +85,9 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
 
     public override void Tick()
     {
-        Available = (mechanicalNode?.IsConsumer ?? false) && manufactory.HasCurrentRecipe;
+        Available = (mechanicalNode?.IsConsumer ?? false) && (manufactory?.HasCurrentRecipe ?? false);
+        if(!Available)
+            return;
         var batteries = mechanicalNode?.Graph?.Batteries.Where(battery =>
             battery.ActiveAndPowered).ToImmutableArray() ?? [];
         var capacities = batteries.Select(battery =>
