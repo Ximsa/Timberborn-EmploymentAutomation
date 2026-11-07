@@ -5,12 +5,12 @@
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\T*.dll"/>
-        <Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\U*.dll"/>
-        <Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\B*.dll"/>
-        <Reference Include="G:\GOG Games\Timberborn\Timberborn_Data\Managed\System.Collections.Immutable.dll"/>
+        <Reference Include="F:\GOG\Timberborn\Timberborn_Data\Managed\T*.dll"/>
+        <Reference Include="F:\GOG\Timberborn\Timberborn_Data\Managed\U*.dll"/>
+        <Reference Include="F:\GOG\Timberborn\Timberborn_Data\Managed\B*.dll"/>
+        <Reference Include="F:\GOG\Timberborn\Timberborn_Data\Managed\System.Collections.Immutable.dll"/>
         <Reference Include="TimberUi">
-            <HintPath>D:\OneDrive\Dokumente\Timberborn\Mods\timberui\version-1.0\TimberUi.dll</HintPath>
+            <HintPath>C:\Users\monik\OneDrive\Dokumente\Timberborn\Mods\timberui-1y6n\version-1.1\TimberUi.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>

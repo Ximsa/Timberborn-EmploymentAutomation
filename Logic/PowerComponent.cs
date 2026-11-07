@@ -4,6 +4,7 @@ using System.Linq;
 using Bindito.Core;
 using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
+using Timberborn.EntitySystem;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.Workshops;
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace EmploymentAutomation.Logic;
 
-public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentBoundsProvider
+public class PowerComponent : TickableComponent, IInitializableEntity, IPersistentEntity, IEmploymentBoundsProvider
 {
     private static readonly ComponentKey EmploymentManagerComponentKey =
         new("EmploymentManagerPowerComponent");
@@ -81,7 +82,7 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
             .Any(x => x.Namespace is "IgorZ.SmartPower.Core");
     }
 
-    public override void StartTickable() => UpdateComponents();
+    public void InitializeEntity() => UpdateComponents();
 
     public override void Tick()
     {

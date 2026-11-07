@@ -3,6 +3,7 @@ using System.Linq;
 using Bindito.Core;
 using Timberborn.GameDistricts;
 using Timberborn.Persistence;
+using Timberborn.EntitySystem;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.Workshops;
@@ -12,7 +13,7 @@ using UnityEngine;
 
 namespace EmploymentAutomation.Logic;
 
-public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymentBoundsProvider
+public class ProductComponent : TickableComponent, IInitializableEntity, IPersistentEntity, IEmploymentBoundsProvider
 {
     private static readonly ComponentKey EmploymentManagerComponentKey = new("EmploymentManagerProductComponent");
     private static readonly PropertyKey<bool> OutStockActiveKey = new("Active");
@@ -66,7 +67,7 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
         districtBuilding = GetComponent<DistrictBuilding>();
     }
 
-    public override void StartTickable() => UpdateComponents();
+    public void InitializeEntity() => UpdateComponents();
 
     public override void Tick()
     {

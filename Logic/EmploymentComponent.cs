@@ -1,5 +1,6 @@
 ﻿using Bindito.Core;
 using Timberborn.Buildings;
+using Timberborn.EntitySystem;
 using Timberborn.SingletonSystem;
 using Timberborn.TickSystem;
 using Timberborn.WorkSystem;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace EmploymentAutomation.Logic;
 
-public class EmploymentComponent : TickableComponent
+public class EmploymentComponent : TickableComponent, IInitializableEntity
 {
     private Workplace workplace;
     private PowerComponent powerComponent;
@@ -31,7 +32,7 @@ public class EmploymentComponent : TickableComponent
         pausableBuilding = GetComponent<PausableBuilding>();
     }
 
-    public override void StartTickable() => UpdateComponents();
+    public void InitializeEntity() => UpdateComponents();
 
     public override void Tick()
     {
